@@ -1,33 +1,172 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: 'API Reference'
+description: 'Build powerful knowledge retrieval applications with Polyvia AI'
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+Welcome to the Polyvia AI API documentation. Our API enables you to build applications that transform unstructured documents into searchable, structured knowledge.
 
-## Welcome
+## Core Pipeline
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+Polyvia's API follows a multi-stage pipeline for processing documents:
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+<Steps>
+<Step title="Ingest">
+  Upload documents (PDF, DOCX, PPTX, audio, video) to the platform
+</Step>
+
+<Step title="Parse">
+  Extract structured content using multimodal parsing (text, tables, charts, images)
+</Step>
+
+<Step title="Index">
+  Embed content into vector database for semantic search
+</Step>
+
+<Step title="Knowledge Graph">
+  Extract entities and relationships to build a knowledge graph
+</Step>
+
+<Step title="Retrieval">
+  Search and retrieve information with citations using semantic, keyword, or hybrid search
+</Step>
+</Steps>
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+All API requests require authentication using an API key. Include your key in the `Authorization` header:
 
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+```bash
+Authorization: Bearer YOUR_API_KEY
 ```
+
+<Warning>
+Keep your API key secure. Never expose it in client-side code or public repositories.
+</Warning>
+
+## Getting Your API Key
+
+1. Log in to your [Polyvia dashboard](https://app.polyvia.ai)
+2. Navigate to **Settings** → **API Keys**
+3. Click **Create New Key**
+4. Copy and securely store your key
+
+## Base URL
+
+```
+https://api.polyvia.ai
+```
+
+## Rate Limits
+
+Rate limits vary by plan:
+
+- **Free**: 100 requests/day
+- **Pro**: 1,000 requests/day
+- **Enterprise**: Custom limits
+
+<Tip>
+Monitor your usage in the dashboard to avoid hitting rate limits.
+</Tip>
+
+## Quick Start
+
+Here's a complete example of the document processing workflow:
+
+<CodeGroup>
+```javascript Node.js
+// 1. Upload document
+const formData = new FormData();
+formData.append('file', fileBlob);
+formData.append('name', 'My Document');
+
+const uploadRes = await fetch('https://api.polyvia.ai/api/ingest', {
+  method: 'POST',
+  headers: { 'Authorization': `Bearer ${apiKey}` },
+  body: formData
+});
+const { document_id } = await uploadRes.json();
+
+// 2. Parse document
+const parseRes = await fetch('https://api.polyvia.ai/api/parse', {
+  method: 'POST',
+  headers: { 
+    'Authorization': `Bearer ${apiKey}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ document_id })
+});
+
+// 3. Index for search
+await fetch('https://api.polyvia.ai/api/index', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${apiKey}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ document_id })
+});
+
+// 4. Search
+const searchRes = await fetch('https://api.polyvia.ai/api/retrieval/search', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${apiKey}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    query: 'What are the main findings?',
+    limit: 5
+  })
+});
+```
+
+```python Python
+import requests
+
+api_key = "YOUR_API_KEY"
+headers = {"Authorization": f"Bearer {api_key}"}
+
+# 1. Upload document
+files = {'file': open('document.pdf', 'rb')}
+data = {'name': 'My Document'}
+upload_res = requests.post(
+    'https://api.polyvia.ai/api/ingest',
+    headers=headers,
+    files=files,
+    data=data
+)
+document_id = upload_res.json()['document_id']
+
+# 2. Parse document
+parse_res = requests.post(
+    'https://api.polyvia.ai/api/parse',
+    headers={**headers, 'Content-Type': 'application/json'},
+    json={'document_id': document_id}
+)
+
+# 3. Index for search
+requests.post(
+    'https://api.polyvia.ai/api/index',
+    headers={**headers, 'Content-Type': 'application/json'},
+    json={'document_id': document_id}
+)
+
+# 4. Search
+search_res = requests.post(
+    'https://api.polyvia.ai/api/retrieval/search',
+    headers={**headers, 'Content-Type': 'application/json'},
+    json={
+        'query': 'What are the main findings?',
+        'limit': 5
+    }
+)
+```
+</CodeGroup>
+
+## Support
+
+Need help? Reach out to our team:
+
+- **Email**: [senyao@polyvia.ai](mailto:senyao@polyvia.ai)
+- **Documentation**: [docs.polyvia.ai](https://docs.polyvia.ai)
+- **Dashboard**: [app.polyvia.ai](https://app.polyvia.ai)

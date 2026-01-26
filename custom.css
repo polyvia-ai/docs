@@ -1,0 +1,16 @@
+/* Custom styles for Mintlify documentation */
+
+/* Increase logo size - targeting Mintlify's nav-logo class */
+.nav-logo {
+    height: 48px !important;
+    max-height: 48px !important;
+    width: auto !important;
+}
+
+/* Fallback selectors for additional compatibility */
+nav a[href="/"] img,
+header a[href="/"] img {
+    height: 64px !important;
+    max-height: 64px !important;
+    width: auto !important;
+}

@@ -1,0 +1,225 @@
+---
+title: "Ingest"
+description: "Upload and manage documents"
+---
+
+The Ingest API handles document uploads and file management for the Polyvia knowledge base.
+
+## Upload Document
+
+Upload a file to be processed through the Polyvia pipeline.
+
+### Endpoint
+
+`POST /api/ingest`
+
+### Request Body
+
+<ParamField body="file" type="file" required>
+  The file to upload. Supported formats: PDF, DOCX, PPTX, MP3, MP4, WAV
+</ParamField>
+
+<ParamField body="name" type="string" required>
+  Display name for the document
+</ParamField>
+
+<ParamField body="metadata" type="object">
+  Optional metadata to attach to the document
+  
+  <Expandable title="Metadata fields">
+    <ParamField body="tags" type="array">
+      Array of tag strings for categorization
+    </ParamField>
+    
+    <ParamField body="source" type="string">
+      Source or origin of the document
+    </ParamField>
+    
+    <ParamField body="author" type="string">
+      Document author
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Response
+
+<ResponseField name="document_id" type="string" required>
+  Unique identifier for the uploaded document
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Document display name
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Current processing status: `pending`, `processing`, `completed`, `failed`
+</ResponseField>
+
+<ResponseField name="file_url" type="string">
+  Secure URL to access the uploaded file
+</ResponseField>
+
+<ResponseField name="created_at" type="timestamp">
+  ISO 8601 timestamp of when the document was uploaded
+</ResponseField>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.polyvia.ai/api/ingest \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -F "file=@/path/to/document.pdf" \
+  -F "name=Q4 Financial Report" \
+  -F 'metadata={"tags":["finance","quarterly"],"author":"Finance Team"}'
+```
+
+```javascript Node.js
+const formData = new FormData();
+formData.append('file', fileBlob, 'document.pdf');
+formData.append('name', 'Q4 Financial Report');
+formData.append('metadata', JSON.stringify({
+  tags: ['finance', 'quarterly'],
+  author: 'Finance Team'
+}));
+
+const response = await fetch('https://api.polyvia.ai/api/ingest', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${apiKey}`
+  },
+  body: formData
+});
+
+const data = await response.json();
+```
+
+```python Python
+import requests
+
+files = {'file': open('document.pdf', 'rb')}
+data = {
+    'name': 'Q4 Financial Report',
+    'metadata': json.dumps({
+        'tags': ['finance', 'quarterly'],
+        'author': 'Finance Team'
+    })
+}
+
+response = requests.post(
+    'https://api.polyvia.ai/api/ingest',
+    headers={'Authorization': f'Bearer {api_key}'},
+    files=files,
+    data=data
+)
+```
+</CodeGroup>
+
+<ResponseExample>
+```json Success
+{
+  "document_id": "doc_abc123xyz",
+  "name": "Q4 Financial Report",
+  "status": "pending",
+  "file_url": "https://storage.polyvia.ai/files/doc_abc123xyz.pdf",
+  "created_at": "2024-01-27T10:30:00Z"
+}
+```
+</ResponseExample>
+
+---
+
+## Get Document Status
+
+Retrieve the current status and metadata of an uploaded document.
+
+### Endpoint
+
+`GET /api/ingest/{document_id}`
+
+### Path Parameters
+
+<ParamField path="document_id" type="string" required>
+  The document identifier returned from the upload endpoint
+</ParamField>
+
+### Response
+
+<ResponseField name="document_id" type="string">
+  Document identifier
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Document display name
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Processing status: `pending`, `processing`, `completed`, `failed`
+</ResponseField>
+
+<ResponseField name="file_url" type="string">
+  URL to access the file
+</ResponseField>
+
+<ResponseField name="metadata" type="object">
+  Document metadata
+</ResponseField>
+
+<ResponseField name="error" type="string | null">
+  Error message if status is `failed`
+</ResponseField>
+
+### Example
+
+```bash
+curl https://api.polyvia.ai/api/ingest/doc_abc123xyz \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+<ResponseExample>
+```json Success
+{
+  "document_id": "doc_abc123xyz",
+  "name": "Q4 Financial Report",
+  "status": "completed",
+  "file_url": "https://storage.polyvia.ai/files/doc_abc123xyz.pdf",
+  "metadata": {
+    "tags": ["finance", "quarterly"],
+    "author": "Finance Team"
+  },
+  "created_at": "2024-01-27T10:30:00Z",
+  "error": null
+}
+```
+</ResponseExample>
+
+---
+
+## Supported File Formats
+
+<CardGroup cols={2}>
+  <Card title="Documents" icon="file-lines">
+    - PDF (.pdf)
+    - Word (.docx, .doc)
+    - PowerPoint (.pptx, .ppt)
+  </Card>
+  
+  <Card title="Media" icon="video">
+    - Audio (.mp3, .wav, .m4a)
+    - Video (.mp4, .mov, .avi)
+  </Card>
+</CardGroup>
+
+<Note>
+Maximum file size: **100 MB** per file. Contact support for larger file processing.
+</Note>
+
+## Rate Limits
+
+- **Free tier**: 10 uploads per day
+- **Pro tier**: 100 uploads per day
+- **Enterprise**: Custom limits
+
+<Tip>
+Use batch processing for multiple documents to optimize your quota usage.
+</Tip>

@@ -1,0 +1,354 @@
+---
+title: "Knowledge Graph"
+description: "Build and query knowledge graphs from documents"
+---
+
+The Knowledge Graph API constructs entity-relationship graphs from parsed documents, enabling advanced querying and discovery of connections across your knowledge base.
+
+## Build Knowledge Graph
+
+Construct a knowledge graph from a parsed document by extracting entities and relationships.
+
+### Endpoint
+
+`POST /api/knowledge-graph`
+
+### Request Body
+
+<ParamField body="document_id" type="string" required>
+  The ID of the parsed document to process
+</ParamField>
+
+<ParamField body="entity_types" type="array">
+  Specific entity types to extract (e.g., `["person", "organization", "location"]`)
+</ParamField>
+
+<ParamField body="extract_relationships" type="boolean" default="true">
+  Whether to extract relationships between entities
+</ParamField>
+
+### Response
+
+<ResponseField name="graph_id" type="string">
+  Unique identifier for the knowledge graph job
+</ResponseField>
+
+<ResponseField name="document_id" type="string">
+  Source document identifier
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Processing status: `pending`, `processing`, `completed`, `failed`
+</ResponseField>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.polyvia.ai/api/knowledge-graph \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "document_id": "doc_abc123xyz",
+    "entity_types": ["person", "organization", "technology"],
+    "extract_relationships": true
+  }'
+```
+
+```javascript Node.js
+const response = await fetch('https://api.polyvia.ai/api/knowledge-graph', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${apiKey}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    document_id: 'doc_abc123xyz',
+    entity_types: ['person', 'organization', 'technology'],
+    extract_relationships: true
+  })
+});
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    'https://api.polyvia.ai/api/knowledge-graph',
+    headers={
+        'Authorization': f'Bearer {api_key}',
+        'Content-Type': 'application/json'
+    },
+    json={
+        'document_id': 'doc_abc123xyz',
+        'entity_types': ['person', 'organization', 'technology'],
+        'extract_relationships': True
+    }
+)
+```
+</CodeGroup>
+
+<ResponseExample>
+```json Success
+{
+  "graph_id": "graph_xyz789",
+  "document_id": "doc_abc123xyz",
+  "status": "processing"
+}
+```
+</ResponseExample>
+
+---
+
+## Query Knowledge Graph
+
+Search the knowledge graph using natural language queries or structured filters.
+
+### Endpoint
+
+`POST /api/knowledge-graph/query`
+
+### Request Body
+
+<ParamField body="query" type="string" required>
+  Natural language query or entity name to search for
+</ParamField>
+
+<ParamField body="entity_types" type="array">
+  Filter results by entity types
+</ParamField>
+
+<ParamField body="max_depth" type="integer" default="2">
+  Maximum relationship depth to traverse (1-5)
+</ParamField>
+
+<ParamField body="limit" type="integer" default="20">
+  Maximum number of entities to return
+</ParamField>
+
+### Response
+
+<ResponseField name="entities" type="array">
+  Array of matching entities
+  
+  <Expandable title="Entity object">
+    <ResponseField name="id" type="string">
+      Unique entity identifier
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Entity name
+    </ResponseField>
+    
+    <ResponseField name="type" type="string">
+      Entity type (e.g., "person", "organization")
+    </ResponseField>
+    
+    <ResponseField name="properties" type="object">
+      Additional entity properties
+    </ResponseField>
+    
+    <ResponseField name="source_documents" type="array">
+      Document IDs where this entity was mentioned
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="relationships" type="array">
+  Array of relationships between entities
+  
+  <Expandable title="Relationship object">
+    <ResponseField name="source_id" type="string">
+      Source entity ID
+    </ResponseField>
+    
+    <ResponseField name="target_id" type="string">
+      Target entity ID
+    </ResponseField>
+    
+    <ResponseField name="type" type="string">
+      Relationship type (e.g., "works_for", "located_in")
+    </ResponseField>
+    
+    <ResponseField name="confidence" type="number">
+      Confidence score (0-1)
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+```bash
+curl -X POST https://api.polyvia.ai/api/knowledge-graph/query \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "companies working on AI",
+    "entity_types": ["organization"],
+    "max_depth": 2,
+    "limit": 10
+  }'
+```
+
+<ResponseExample>
+```json Success
+{
+  "entities": [
+    {
+      "id": "ent_123",
+      "name": "OpenAI",
+      "type": "organization",
+      "properties": {
+        "industry": "Artificial Intelligence",
+        "founded": "2015"
+      },
+      "source_documents": ["doc_abc123xyz", "doc_def456"]
+    }
+  ],
+  "relationships": [
+    {
+      "source_id": "ent_123",
+      "target_id": "ent_456",
+      "type": "partners_with",
+      "confidence": 0.92
+    }
+  ]
+}
+```
+</ResponseExample>
+
+---
+
+## Get Graph Statistics
+
+Retrieve statistics and metadata about the knowledge graph.
+
+### Endpoint
+
+`GET /api/knowledge-graph/stats`
+
+### Response
+
+<ResponseField name="total_entities" type="integer">
+  Total number of entities in the graph
+</ResponseField>
+
+<ResponseField name="total_relationships" type="integer">
+  Total number of relationships
+</ResponseField>
+
+<ResponseField name="entity_types" type="object">
+  Count of entities by type
+</ResponseField>
+
+<ResponseField name="documents_processed" type="integer">
+  Number of documents contributing to the graph
+</ResponseField>
+
+### Example
+
+```bash
+curl https://api.polyvia.ai/api/knowledge-graph/stats \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+<ResponseExample>
+```json Success
+{
+  "total_entities": 1247,
+  "total_relationships": 3891,
+  "entity_types": {
+    "person": 423,
+    "organization": 312,
+    "location": 189,
+    "technology": 323
+  },
+  "documents_processed": 45
+}
+```
+</ResponseExample>
+
+---
+
+## Export Graph Data
+
+Export the knowledge graph in various formats for visualization or analysis.
+
+### Endpoint
+
+`GET /api/knowledge-graph/export`
+
+### Query Parameters
+
+<ParamField query="format" type="string" default="json">
+  Export format: `json`, `cypher`, `graphml`
+</ParamField>
+
+<ParamField query="filter" type="string">
+  Filter entities by type or property
+</ParamField>
+
+### Example
+
+```bash
+curl "https://api.polyvia.ai/api/knowledge-graph/export?format=json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -o graph.json
+```
+
+---
+
+## Supported Entity Types
+
+<CardGroup cols={3}>
+  <Card title="People" icon="user">
+    - Person
+    - Author
+    - Executive
+  </Card>
+  
+  <Card title="Organizations" icon="building">
+    - Company
+    - Institution
+    - Department
+  </Card>
+  
+  <Card title="Locations" icon="location-dot">
+    - City
+    - Country
+    - Address
+  </Card>
+  
+  <Card title="Concepts" icon="lightbulb">
+    - Technology
+    - Product
+    - Service
+  </Card>
+  
+  <Card title="Temporal" icon="clock">
+    - Date
+    - Event
+    - Period
+  </Card>
+  
+  <Card title="Financial" icon="dollar-sign">
+    - Currency
+    - Amount
+    - Transaction
+  </Card>
+</CardGroup>
+
+## Relationship Types
+
+Common relationship types extracted by the system:
+
+- `works_for` - Employment relationship
+- `located_in` - Geographic relationship
+- `part_of` - Hierarchical relationship
+- `related_to` - General association
+- `mentions` - Document reference
+- `uses` - Technology/tool usage
+
+<Tip>
+The knowledge graph automatically merges duplicate entities across documents, creating a unified view of your knowledge base.
+</Tip>

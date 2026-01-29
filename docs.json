@@ -14,25 +14,27 @@
         "tab": "Guides",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Getting Started",
             "pages": [
               "index",
               "quickstart"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Products",
             "pages": [
-              "ai-tools/mcp"
+              "products/api",
+              "products/mcp",
+              "products/studio"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "Introduction",
+            "group": "Overview",
             "pages": [
               "api-reference/introduction"
             ]
@@ -41,10 +43,7 @@
             "group": "Endpoints",
             "pages": [
               "api-reference/endpoint/ingest",
-              "api-reference/endpoint/parse",
-              "api-reference/endpoint/indexing",
-              "api-reference/endpoint/knowledge-graph",
-              "api-reference/endpoint/retrieval"
+              "api-reference/endpoint/query"
             ]
           }
         ]

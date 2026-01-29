@@ -1,33 +1,21 @@
 ---
 title: 'API Reference'
-description: 'Build powerful knowledge retrieval applications with Polyvia AI'
+description: 'Build visual search and reasoning into your applications'
 ---
 
-Welcome to the Polyvia AI API documentation. Our API enables you to build applications that transform unstructured documents into searchable, structured knowledge.
+Welcome to the Polyvia API documentation. Our API enables you to build applications that extract, index, and reason over visual data at scale.
 
-## Core Pipeline
+## Two Simple Endpoints
 
-Polyvia's API follows a multi-stage pipeline for processing documents:
+Polyvia's API is built around two core operations:
 
 <Steps>
 <Step title="Ingest">
-  Upload documents (PDF, DOCX, PPTX, audio, video) to the platform
+  Upload documents to extract visual logic and index facts into your knowledge base
 </Step>
 
-<Step title="Parse">
-  Extract structured content using multimodal parsing (text, tables, charts, images)
-</Step>
-
-<Step title="Index">
-  Embed content into vector database for semantic search
-</Step>
-
-<Step title="Knowledge Graph">
-  Extract entities and relationships to build a knowledge graph
-</Step>
-
-<Step title="Retrieval">
-  Search and retrieve information with citations using semantic, keyword, or hybrid search
+<Step title="Query">
+  Search and reason over your visual knowledge base with audit-ready citations
 </Step>
 </Steps>
 
@@ -45,8 +33,8 @@ Keep your API key secure. Never expose it in client-side code or public reposito
 
 ## Getting Your API Key
 
-1. Log in to your [Polyvia dashboard](https://app.polyvia.ai)
-2. Navigate to **Settings** → **API Keys**
+1. Log in to [Polyvia Studio](https://app.polyvia.ai)
+2. Navigate to **Settings** > **API Keys**
 3. Click **Create New Key**
 4. Copy and securely store your key
 
@@ -55,6 +43,76 @@ Keep your API key secure. Never expose it in client-side code or public reposito
 ```
 https://api.polyvia.ai
 ```
+
+## Quick Start
+
+Here's a complete example: ingest documents and query for insights.
+
+<CodeGroup>
+```python Python
+import requests
+
+api_key = "YOUR_API_KEY"
+headers = {"Authorization": f"Bearer {api_key}"}
+
+# 1. Ingest a document
+with open("financial_report.pdf", "rb") as f:
+    response = requests.post(
+        "https://api.polyvia.ai/ingest",
+        headers=headers,
+        files={"file": f},
+        data={"name": "Q4 Financial Report"}
+    )
+document_id = response.json()["document_id"]
+
+# 2. Query your knowledge base
+response = requests.post(
+    "https://api.polyvia.ai/query",
+    headers={**headers, "Content-Type": "application/json"},
+    json={
+        "query": "What was the Q4 revenue?",
+        "include_citations": True
+    }
+)
+
+result = response.json()
+print(result["answer"])
+# "Q4 2024 revenue was $119.58B [page 24, revenue chart]"
+```
+
+```javascript Node.js
+const apiKey = "YOUR_API_KEY";
+
+// 1. Ingest a document
+const formData = new FormData();
+formData.append("file", fileBlob);
+formData.append("name", "Q4 Financial Report");
+
+const ingestRes = await fetch("https://api.polyvia.ai/ingest", {
+  method: "POST",
+  headers: { Authorization: `Bearer ${apiKey}` },
+  body: formData,
+});
+const { document_id } = await ingestRes.json();
+
+// 2. Query your knowledge base
+const queryRes = await fetch("https://api.polyvia.ai/query", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${apiKey}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    query: "What was the Q4 revenue?",
+    include_citations: true,
+  }),
+});
+
+const result = await queryRes.json();
+console.log(result.answer);
+// "Q4 2024 revenue was $119.58B [page 24, revenue chart]"
+```
+</CodeGroup>
 
 ## Rate Limits
 
@@ -65,103 +123,8 @@ Rate limits vary by plan:
 - **Enterprise**: Custom limits
 
 <Tip>
-Monitor your usage in the dashboard to avoid hitting rate limits.
+Monitor your usage in Polyvia Studio to avoid hitting rate limits.
 </Tip>
-
-## Quick Start
-
-Here's a complete example of the document processing workflow:
-
-<CodeGroup>
-```javascript Node.js
-// 1. Upload document
-const formData = new FormData();
-formData.append('file', fileBlob);
-formData.append('name', 'My Document');
-
-const uploadRes = await fetch('https://api.polyvia.ai/api/ingest', {
-  method: 'POST',
-  headers: { 'Authorization': `Bearer ${apiKey}` },
-  body: formData
-});
-const { document_id } = await uploadRes.json();
-
-// 2. Parse document
-const parseRes = await fetch('https://api.polyvia.ai/api/parse', {
-  method: 'POST',
-  headers: { 
-    'Authorization': `Bearer ${apiKey}`,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({ document_id })
-});
-
-// 3. Index for search
-await fetch('https://api.polyvia.ai/api/index', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${apiKey}`,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({ document_id })
-});
-
-// 4. Search
-const searchRes = await fetch('https://api.polyvia.ai/api/retrieval/search', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${apiKey}`,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    query: 'What are the main findings?',
-    limit: 5
-  })
-});
-```
-
-```python Python
-import requests
-
-api_key = "YOUR_API_KEY"
-headers = {"Authorization": f"Bearer {api_key}"}
-
-# 1. Upload document
-files = {'file': open('document.pdf', 'rb')}
-data = {'name': 'My Document'}
-upload_res = requests.post(
-    'https://api.polyvia.ai/api/ingest',
-    headers=headers,
-    files=files,
-    data=data
-)
-document_id = upload_res.json()['document_id']
-
-# 2. Parse document
-parse_res = requests.post(
-    'https://api.polyvia.ai/api/parse',
-    headers={**headers, 'Content-Type': 'application/json'},
-    json={'document_id': document_id}
-)
-
-# 3. Index for search
-requests.post(
-    'https://api.polyvia.ai/api/index',
-    headers={**headers, 'Content-Type': 'application/json'},
-    json={'document_id': document_id}
-)
-
-# 4. Search
-search_res = requests.post(
-    'https://api.polyvia.ai/api/retrieval/search',
-    headers={**headers, 'Content-Type': 'application/json'},
-    json={
-        'query': 'What are the main findings?',
-        'limit': 5
-    }
-)
-```
-</CodeGroup>
 
 ## Support
 
@@ -169,4 +132,4 @@ Need help? Reach out to our team:
 
 - **Email**: [senyao@polyvia.ai](mailto:senyao@polyvia.ai)
 - **Documentation**: [docs.polyvia.ai](https://docs.polyvia.ai)
-- **Dashboard**: [app.polyvia.ai](https://app.polyvia.ai)
+- **Studio**: [app.polyvia.ai](https://app.polyvia.ai)

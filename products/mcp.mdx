@@ -1,5 +1,6 @@
 ---
-title: "MCP Integration"
+title: "MCP Integration of Polyvia"
+sidebarTitle: "Polyvia MCP Server"
 description: "Use Polyvia AI with Model Context Protocol"
 icon: "plug"
 ---
@@ -23,13 +24,13 @@ Model Context Protocol is an open standard that allows AI applications to secure
 <Steps>
 <Step title="Install the Polyvia MCP Server">
   Install the MCP server package globally:
-  
+
   ```bash
   npm install -g @polyvia/mcp-server
   ```
-  
+
   Or using Python:
-  
+
   ```bash
   pip install polyvia-mcp
   ```
@@ -37,11 +38,11 @@ Model Context Protocol is an open standard that allows AI applications to secure
 
 <Step title="Configure Claude Desktop">
   Add Polyvia to your Claude Desktop configuration file:
-  
+
   <Tabs>
   <Tab title="macOS">
     Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
-    
+
     ```json
     {
       "mcpServers": {
@@ -56,10 +57,10 @@ Model Context Protocol is an open standard that allows AI applications to secure
     }
     ```
   </Tab>
-  
+
   <Tab title="Windows">
     Edit `%APPDATA%\Claude\claude_desktop_config.json`:
-    
+
     ```json
     {
       "mcpServers": {
@@ -75,7 +76,7 @@ Model Context Protocol is an open standard that allows AI applications to secure
     ```
   </Tab>
   </Tabs>
-  
+
   <Warning>
   Never commit your API key to version control. Store it securely in environment variables.
   </Warning>
@@ -83,7 +84,7 @@ Model Context Protocol is an open standard that allows AI applications to secure
 
 <Step title="Restart Claude Desktop">
   Close and reopen Claude Desktop to load the MCP server.
-  
+
   <Check>
   You should see Polyvia tools available in Claude's tool palette.
   </Check>
@@ -118,13 +119,13 @@ Retrieve a specific document by ID with full content.
 **Parameters:**
 - `document_id` (string, required): Document identifier
 
-### `query_knowledge_graph`
+### `query_knowledge_base`
 
-Query the knowledge graph for entities and relationships.
+Query your visual knowledge base for facts and insights.
 
 **Parameters:**
 - `query` (string, required): Natural language query
-- `entity_types` (array, optional): Filter by entity types
+- `include_citations` (boolean, optional): Include source citations (default: true)
 
 ## Available Resources
 
@@ -134,16 +135,12 @@ MCP resources provide read access to your knowledge base:
 
 Access individual documents as resources. Claude can read these directly without tool calls.
 
-### `graph://entities`
-
-Browse all entities in your knowledge graph.
-
 ## Configuration Options
 
 ### Environment Variables
 
 <ParamField path="POLYVIA_API_KEY" type="string" required>
-  Your Polyvia API key from the dashboard
+  Your Polyvia API key from Polyvia Studio
 </ParamField>
 
 <ParamField path="POLYVIA_BASE_URL" type="string" default="https://api.polyvia.ai">
@@ -164,11 +161,11 @@ Once configured, you can ask Claude questions that leverage your Polyvia knowled
 
 Claude will automatically use the `search_documents` tool to find relevant information and provide cited answers.
 
-### Exploring the Knowledge Graph
+### Comparing Data Across Documents
 
-> "Show me all entities related to 'customer onboarding' in our knowledge graph"
+> "Compare Apple and Microsoft's Q4 2024 revenue based on the financial reports in Polyvia"
 
-Claude will use the `query_knowledge_graph` tool to traverse relationships and present findings.
+Claude will query your visual knowledge base and return answers with citations pointing to the exact charts and tables.
 
 ## Troubleshooting
 
@@ -196,11 +193,11 @@ Claude will use the `query_knowledge_graph` tool to traverse relationships and p
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="API Reference" icon="code" href="/api-reference/introduction">
-    Explore the full Polyvia API for custom integrations
+  <Card title="Polyvia API" icon="code" href="/products/api">
+    Build custom integrations with the REST API
   </Card>
-  
-  <Card title="Quickstart" icon="rocket" href="/quickstart">
-    Get started with uploading your first documents
+
+  <Card title="Polyvia Studio" icon="browser" href="/products/studio">
+    Upload documents and manage your knowledge base
   </Card>
 </CardGroup>

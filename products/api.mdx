@@ -1,0 +1,87 @@
+---
+title: "Polyvia API"
+description: "REST API for visual search and reasoning"
+icon: "terminal"
+---
+
+The Polyvia API provides programmatic access to visual search and reasoning capabilities. Build applications that extract insights from charts, slides, and diagrams at scale.
+
+## Overview
+
+The API is built around two core endpoints:
+
+<CardGroup cols={2}>
+  <Card title="/ingest" icon="file-arrow-up">
+    Upload and index documents into your visual knowledge base
+  </Card>
+  <Card title="/query" icon="magnifying-glass">
+    Search and reason over your indexed visual content
+  </Card>
+</CardGroup>
+
+## Quick Example
+
+Here's a complete workflow: upload a set of financial reports, then query for insights.
+
+### 1. Ingest Documents
+
+```python
+import requests
+
+api_key = "YOUR_API_KEY"
+headers = {"Authorization": f"Bearer {api_key}"}
+
+# Upload multiple documents
+documents = [
+    "apple_10k_2024.pdf",
+    "apple_10k_2023.pdf",
+    "microsoft_10k_2024.pdf",
+    "microsoft_10k_2023.pdf",
+    "google_10k_2024.pdf",
+    "amazon_10k_2024.pdf"
+]
+
+for doc in documents:
+    with open(doc, "rb") as f:
+        response = requests.post(
+            "https://api.polyvia.ai/ingest",
+            headers=headers,
+            files={"file": f},
+            data={"name": doc}
+        )
+        print(f"Ingested {doc}: {response.json()['document_id']}")
+```
+
+### 2. Query Your Knowledge Base
+
+```python
+# Query with visual reasoning
+response = requests.post(
+    "https://api.polyvia.ai/query",
+    headers={**headers, "Content-Type": "application/json"},
+    json={
+        "query": "What's the difference between Apple and Microsoft revenue in Q4 2024?",
+        "include_citations": True
+    }
+)
+
+result = response.json()
+print(result["answer"])
+# "Apple Q4 2024 revenue: $119.58B [10-K page 24, chart]
+#  Microsoft Q4 2024 revenue: $62.02B [10-K page 31, table]
+#  Difference: $57.56B in favor of Apple"
+
+for citation in result["citations"]:
+    print(f"  - {citation['document']}, page {citation['page']}")
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="book" href="/api-reference/introduction">
+    Full endpoint documentation with all parameters
+  </Card>
+  <Card title="Polyvia MCP Server" icon="plug" href="/products/mcp">
+    Connect Polyvia to Claude Desktop and Cursor
+  </Card>
+</CardGroup>

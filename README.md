@@ -1,43 +1,44 @@
-# Mintlify Starter Kit
+# Polyvia AI Documentation
 
-Use the starter kit to get your docs deployed and ready to customize.
+Documentation for [Polyvia AI](https://polyvia.ai) - the Visual Knowledge Index for Agents & MCPs.
 
-Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
+## What is Polyvia?
 
-- Guide pages
-- Navigation
-- Customizations
-- API reference pages
-- Use of popular components
+Polyvia is visual search and reasoning infrastructure. We extract, index, and reason over charts, slides, and diagrams - turning scattered visuals into a queryable index of facts.
 
-**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
+## Documentation Structure
+
+### Getting Started
+- **Introduction** - Overview of Polyvia and the visual knowledge pipeline
+- **Quickstart** - Get up and running in minutes
+
+### Products
+- **Polyvia API** - REST API for visual search and reasoning
+- **Polyvia MCP Server** - Connect Polyvia to Claude Desktop, Cursor, and MCP-compatible tools
+- **Polyvia Studio** - Web app for visual search and exploration
+
+### API Reference
+- **Overview** - Authentication, base URL, rate limits
+- **Endpoints**
+  - `/ingest` - Upload and index documents
+  - `/query` - Search and reason over your knowledge base
 
 ## Development
 
-Install the [Mintlify CLI](https://www.npmjs.com/package/mint) to preview your documentation changes locally. To install, use the following command:
+This documentation is built with [Mintlify](https://mintlify.com).
 
-```
+```bash
+# Install Mintlify CLI
 npm i -g mint
-```
 
-Run the following command at the root of your documentation, where your `docs.json` is located:
-
-```
+# Run local preview
 mint dev
 ```
 
-View your local preview at `http://localhost:3000`.
+Preview at `http://localhost:3000`
 
-## Publishing changes
+## Links
 
-Install our GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app) to propagate changes from your repo to your deployment. Changes are deployed to production automatically after pushing to the default branch.
-
-## Need help?
-
-### Troubleshooting
-
-- If your dev environment isn't running: Run `mint update` to ensure you have the most recent version of the CLI.
-- If a page loads as a 404: Make sure you are running in a folder with a valid `docs.json`.
-
-### Resources
-- [Mintlify documentation](https://mintlify.com/docs)
+- Website: [polyvia.ai](https://polyvia.ai)
+- Studio: [app.polyvia.ai](https://app.polyvia.ai)
+- Docs: [docs.polyvia.ai](https://docs.polyvia.ai)

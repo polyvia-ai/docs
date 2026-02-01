@@ -1,0 +1,203 @@
+---
+title: "MCP Integration of Polyvia"
+sidebarTitle: "Polyvia MCP Server"
+description: "Use Polyvia with Model Context Protocol"
+icon: "plug"
+---
+
+Polyvia implements the [Model Context Protocol (MCP)](https://modelcontextprotocol.io), enabling seamless integration with AI assistants like Claude Desktop, IDEs, and other MCP-compatible tools.
+
+## What is MCP?
+
+Model Context Protocol is an open standard that allows AI applications to securely access external data sources and tools. Polyvia's MCP server exposes your knowledge base as a set of tools and resources that AI assistants can use to answer questions with citations.
+
+## Installation
+
+### Prerequisites
+
+- Node.js 18+ or Python 3.10+
+- Polyvia account with API key
+- MCP-compatible client (Claude Desktop, Cline, etc.)
+
+### Setup with Claude Desktop
+
+<Steps>
+<Step title="Install the Polyvia MCP Server">
+  Install the MCP server package globally:
+
+  ```bash
+  npm install -g @polyvia/mcp-server
+  ```
+
+  Or using Python:
+
+  ```bash
+  pip install polyvia-mcp
+  ```
+</Step>
+
+<Step title="Configure Claude Desktop">
+  Add Polyvia to your Claude Desktop configuration file:
+
+  <Tabs>
+  <Tab title="macOS">
+    Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+    ```json
+    {
+      "mcpServers": {
+        "polyvia": {
+          "command": "npx",
+          "args": ["-y", "@polyvia/mcp-server"],
+          "env": {
+            "POLYVIA_API_KEY": "your_api_key_here"
+          }
+        }
+      }
+    }
+    ```
+  </Tab>
+
+  <Tab title="Windows">
+    Edit `%APPDATA%\Claude\claude_desktop_config.json`:
+
+    ```json
+    {
+      "mcpServers": {
+        "polyvia": {
+          "command": "npx",
+          "args": ["-y", "@polyvia/mcp-server"],
+          "env": {
+            "POLYVIA_API_KEY": "your_api_key_here"
+          }
+        }
+      }
+    }
+    ```
+  </Tab>
+  </Tabs>
+
+  <Warning>
+  Never commit your API key to version control. Store it securely in environment variables.
+  </Warning>
+</Step>
+
+<Step title="Restart Claude Desktop">
+  Close and reopen Claude Desktop to load the MCP server.
+
+  <Check>
+  You should see Polyvia tools available in Claude's tool palette.
+  </Check>
+</Step>
+</Steps>
+
+## Available Tools
+
+The Polyvia MCP server provides the following tools:
+
+### `search_documents`
+
+Perform semantic search across your knowledge base.
+
+**Parameters:**
+- `query` (string, required): Search query
+- `limit` (integer, optional): Maximum results to return (default: 10)
+- `filters` (object, optional): Filter by document metadata
+
+**Example:**
+```json
+{
+  "query": "What are the security features?",
+  "limit": 5
+}
+```
+
+### `get_document`
+
+Retrieve a specific document by ID with full content.
+
+**Parameters:**
+- `document_id` (string, required): Document identifier
+
+### `query_knowledge_base`
+
+Query your visual knowledge base for facts and insights.
+
+**Parameters:**
+- `query` (string, required): Natural language query
+- `include_citations` (boolean, optional): Include source citations (default: true)
+
+## Available Resources
+
+MCP resources provide read access to your knowledge base:
+
+### `document://[document_id]`
+
+Access individual documents as resources. Claude can read these directly without tool calls.
+
+## Configuration Options
+
+### Environment Variables
+
+<ParamField path="POLYVIA_API_KEY" type="string" required>
+  Your Polyvia API key from Polyvia Studio
+</ParamField>
+
+<ParamField path="POLYVIA_BASE_URL" type="string" default="https://api.polyvia.ai">
+  API base URL (for self-hosted instances)
+</ParamField>
+
+<ParamField path="POLYVIA_TIMEOUT" type="integer" default="30000">
+  Request timeout in milliseconds
+</ParamField>
+
+## Usage Examples
+
+### Asking Questions with Citations
+
+Once configured, you can ask Claude questions that leverage your Polyvia knowledge base:
+
+> "Using the Polyvia knowledge base, what are our company's data retention policies?"
+
+Claude will automatically use the `search_documents` tool to find relevant information and provide cited answers.
+
+### Comparing Data Across Documents
+
+> "Compare Apple and Microsoft's Q4 2024 revenue based on the financial reports in Polyvia"
+
+Claude will query your visual knowledge base and return answers with citations pointing to the exact charts and tables.
+
+## Troubleshooting
+
+<AccordionGroup>
+<Accordion title="MCP server not appearing in Claude">
+  - Verify the configuration file path is correct
+  - Check that the API key is valid
+  - Restart Claude Desktop completely
+  - Check Claude's logs for error messages
+</Accordion>
+
+<Accordion title="Authentication errors">
+  - Ensure your API key is correctly set in the environment variables
+  - Verify the API key has not expired
+  - Check that you have an active Polyvia subscription
+</Accordion>
+
+<Accordion title="Slow response times">
+  - Large knowledge bases may take longer to search
+  - Consider using filters to narrow search scope
+  - Increase the `POLYVIA_TIMEOUT` value if needed
+</Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Polyvia API" icon="code" href="/products/api">
+    Build custom integrations with the REST API
+  </Card>
+
+  <Card title="Polyvia Studio" icon="browser" href="/products/studio">
+    Upload documents and manage your knowledge base
+  </Card>
+</CardGroup>

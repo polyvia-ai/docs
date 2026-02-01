@@ -1,0 +1,284 @@
+---
+title: "Ingest"
+description: "Upload and index documents into your visual knowledge base"
+---
+
+The Ingest endpoint handles document uploads, visual extraction, and indexing. Upload your PDFs, slides, and visual documents to build a queryable knowledge base.
+
+## Upload Document
+
+Upload a file to be processed through the Polyvia Engine pipeline (extraction, indexing, and fact connection).
+
+### Endpoint
+
+`POST /ingest`
+
+### Request Body
+
+<ParamField body="file" type="file" required>
+  The file to upload. Supported formats: PDF, DOCX, PPTX, PNG, JPG
+</ParamField>
+
+<ParamField body="name" type="string" required>
+  Display name for the document
+</ParamField>
+
+<ParamField body="metadata" type="object">
+  Optional metadata to attach to the document
+
+  <Expandable title="Metadata fields">
+    <ParamField body="tags" type="array">
+      Array of tag strings for categorization
+    </ParamField>
+
+    <ParamField body="source" type="string">
+      Source or origin of the document
+    </ParamField>
+
+    <ParamField body="author" type="string">
+      Document author
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="options" type="object">
+  Processing options
+
+  <Expandable title="Options">
+    <ParamField body="extract_charts" type="boolean" default="true">
+      Extract data from charts and graphs
+    </ParamField>
+
+    <ParamField body="extract_tables" type="boolean" default="true">
+      Extract data from tables
+    </ParamField>
+
+    <ParamField body="ocr_images" type="boolean" default="true">
+      Apply OCR to embedded images
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Response
+
+<ResponseField name="document_id" type="string" required>
+  Unique identifier for the uploaded document
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Document display name
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Processing status: `pending`, `processing`, `completed`, `failed`
+</ResponseField>
+
+<ResponseField name="created_at" type="timestamp">
+  ISO 8601 timestamp of when the document was uploaded
+</ResponseField>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.polyvia.ai/ingest \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -F "file=@/path/to/report.pdf" \
+  -F "name=Q4 Financial Report" \
+  -F 'metadata={"tags":["finance","quarterly"],"author":"Finance Team"}'
+```
+
+```python Python
+import requests
+
+files = {"file": open("report.pdf", "rb")}
+data = {
+    "name": "Q4 Financial Report",
+    "metadata": '{"tags": ["finance", "quarterly"], "author": "Finance Team"}'
+}
+
+response = requests.post(
+    "https://api.polyvia.ai/ingest",
+    headers={"Authorization": f"Bearer {api_key}"},
+    files=files,
+    data=data
+)
+
+print(response.json())
+```
+
+```javascript Node.js
+const formData = new FormData();
+formData.append("file", fileBlob, "report.pdf");
+formData.append("name", "Q4 Financial Report");
+formData.append("metadata", JSON.stringify({
+  tags: ["finance", "quarterly"],
+  author: "Finance Team"
+}));
+
+const response = await fetch("https://api.polyvia.ai/ingest", {
+  method: "POST",
+  headers: { Authorization: `Bearer ${apiKey}` },
+  body: formData
+});
+
+const data = await response.json();
+```
+</CodeGroup>
+
+<ResponseExample>
+```json Success
+{
+  "document_id": "doc_abc123xyz",
+  "name": "Q4 Financial Report",
+  "status": "processing",
+  "created_at": "2025-01-27T10:30:00Z"
+}
+```
+</ResponseExample>
+
+---
+
+## Get Document Status
+
+Check the processing status of an uploaded document.
+
+### Endpoint
+
+`GET /ingest/{document_id}`
+
+### Path Parameters
+
+<ParamField path="document_id" type="string" required>
+  The document identifier returned from the upload endpoint
+</ParamField>
+
+### Response
+
+<ResponseField name="document_id" type="string">
+  Document identifier
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Document display name
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Processing status: `pending`, `processing`, `completed`, `failed`
+</ResponseField>
+
+<ResponseField name="facts_extracted" type="integer">
+  Number of facts extracted from the document
+</ResponseField>
+
+<ResponseField name="pages_processed" type="integer">
+  Number of pages processed
+</ResponseField>
+
+<ResponseField name="error" type="string | null">
+  Error message if status is `failed`
+</ResponseField>
+
+### Example
+
+```bash
+curl https://api.polyvia.ai/ingest/doc_abc123xyz \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+<ResponseExample>
+```json Success
+{
+  "document_id": "doc_abc123xyz",
+  "name": "Q4 Financial Report",
+  "status": "completed",
+  "facts_extracted": 127,
+  "pages_processed": 45,
+  "created_at": "2025-01-27T10:30:00Z",
+  "completed_at": "2025-01-27T10:32:15Z",
+  "error": null
+}
+```
+</ResponseExample>
+
+---
+
+## List Documents
+
+List all documents in your knowledge base.
+
+### Endpoint
+
+`GET /ingest`
+
+### Query Parameters
+
+<ParamField query="limit" type="integer" default="50">
+  Maximum documents to return (1-100)
+</ParamField>
+
+<ParamField query="offset" type="integer" default="0">
+  Number of documents to skip
+</ParamField>
+
+<ParamField query="status" type="string">
+  Filter by status: `pending`, `processing`, `completed`, `failed`
+</ParamField>
+
+### Example
+
+```bash
+curl "https://api.polyvia.ai/ingest?limit=10&status=completed" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+---
+
+## Delete Document
+
+Remove a document from your knowledge base.
+
+### Endpoint
+
+`DELETE /ingest/{document_id}`
+
+### Example
+
+```bash
+curl -X DELETE https://api.polyvia.ai/ingest/doc_abc123xyz \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+---
+
+## Supported File Formats
+
+<CardGroup cols={2}>
+  <Card title="Documents" icon="file-lines">
+    - PDF (.pdf)
+    - Word (.docx)
+    - PowerPoint (.pptx)
+  </Card>
+
+  <Card title="Images" icon="image">
+    - PNG (.png)
+    - JPEG (.jpg, .jpeg)
+    - TIFF (.tiff)
+  </Card>
+</CardGroup>
+
+<Note>
+Maximum file size: **100 MB** per file. Contact support for larger file processing.
+</Note>
+
+## Processing Pipeline
+
+When you upload a document, Polyvia automatically:
+
+1. **Extracts** visual logic from charts, tables, diagrams, and infographics
+2. **Indexes** facts into your knowledge base with source tracking
+3. **Connects** related facts across documents for cross-document reasoning
+
+<Tip>
+Documents are typically processed within 1-2 minutes. Use the status endpoint to check progress.
+</Tip>

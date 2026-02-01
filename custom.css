@@ -1,0 +1,35 @@
+/* Custom styles for Mintlify documentation */
+
+/* Increase logo size - targeting Mintlify's nav-logo class */
+.nav-logo {
+    height: 48px !important;
+    max-height: 48px !important;
+    width: auto !important;
+}
+
+/* Fallback selectors for additional compatibility */
+nav a[href="/"] img,
+header a[href="/"] img {
+    height: 64px !important;
+    max-height: 64px !important;
+    width: auto !important;
+}
+
+/* Force light mode only - hide dark mode toggle */
+button[aria-label*="theme" i],
+button[aria-label*="dark" i],
+button[aria-label*="mode" i],
+[data-theme-toggle],
+.theme-toggle {
+    display: none !important;
+}
+
+/* Ensure light mode styles are always applied */
+html {
+    color-scheme: light !important;
+}
+
+html.dark,
+html[data-theme="dark"] {
+    color-scheme: light !important;
+}

@@ -1,78 +1,75 @@
 ---
 title: "Polyvia API"
-description: "REST API for visual search and reasoning"
+description: "REST API for document ingestion and querying"
 icon: "terminal"
 ---
 
-The Polyvia API provides programmatic access to visual search and reasoning capabilities. Build applications that extract insights from charts, slides, and diagrams at scale.
+The Polyvia API provides programmatic access to document ingestion and natural-language querying. Build applications that upload documents, track processing status, and ask questions across your workspace.
 
 ## Overview
 
-The API is built around two core endpoints:
+The API is built around three core operations:
 
-<CardGroup cols={2}>
-  <Card title="/ingest" icon="file-arrow-up">
-    Upload and index documents into your visual knowledge base
+<CardGroup cols={3}>
+  <Card title="/api/v1/ingest" icon="file-arrow-up">
+    Upload documents and poll ingestion status
   </Card>
-  <Card title="/query" icon="magnifying-glass">
-    Search and reason over your indexed visual content
+  <Card title="/api/v1/documents" icon="folder-open">
+    List and retrieve documents in your workspace
+  </Card>
+  <Card title="/api/v1/query" icon="magnifying-glass">
+    Ask natural-language questions across your documents
   </Card>
 </CardGroup>
 
 ## Quick Example
 
-Here's a complete workflow: upload a set of financial reports, then query for insights.
+Here's a complete workflow: upload a document, wait for ingestion, then query for insights.
 
-### 1. Ingest Documents
+### 1. Ingest a Document
 
 ```python
-import requests
+import httpx
+import time
 
-api_key = "YOUR_API_KEY"
-headers = {"Authorization": f"Bearer {api_key}"}
+API_KEY = "poly_<your-key>"
+BASE    = "https://app.polyvia.ai"
+HEADERS = {"Authorization": f"Bearer {API_KEY}"}
 
-# Upload multiple documents
-documents = [
-    "apple_10k_2024.pdf",
-    "apple_10k_2023.pdf",
-    "microsoft_10k_2024.pdf",
-    "microsoft_10k_2023.pdf",
-    "google_10k_2024.pdf",
-    "amazon_10k_2024.pdf"
-]
-
-for doc in documents:
-    with open(doc, "rb") as f:
-        response = requests.post(
-            "https://api.polyvia.ai/ingest",
-            headers=headers,
-            files={"file": f},
-            data={"name": doc}
-        )
-        print(f"Ingested {doc}: {response.json()['document_id']}")
+# Upload
+with open("report.pdf", "rb") as f:
+    resp = httpx.post(
+        f"{BASE}/api/v1/ingest",
+        headers=HEADERS,
+        files={"file": ("report.pdf", f, "application/pdf")},
+        data={"name": "Q4 Report"},
+    )
+resp.raise_for_status()
+task_id     = resp.json()["task_id"]
+document_id = resp.json()["document_id"]
 ```
 
-### 2. Query Your Knowledge Base
+### 2. Poll Until Ready
 
 ```python
-# Query with visual reasoning
-response = requests.post(
-    "https://api.polyvia.ai/query",
-    headers={**headers, "Content-Type": "application/json"},
-    json={
-        "query": "What's the difference between Apple and Microsoft revenue in Q4 2024?",
-        "include_citations": True
-    }
-)
+while True:
+    status = httpx.get(f"{BASE}/api/v1/ingest/{task_id}", headers=HEADERS).json()["status"]
+    print(f"Status: {status}")
+    if status in ("completed", "failed"):
+        break
+    time.sleep(5)
+```
 
-result = response.json()
-print(result["answer"])
-# "Apple Q4 2024 revenue: $119.58B [10-K page 24, chart]
-#  Microsoft Q4 2024 revenue: $62.02B [10-K page 31, table]
-#  Difference: $57.56B in favor of Apple"
+### 3. Query Your Document
 
-for citation in result["citations"]:
-    print(f"  - {citation['document']}, page {citation['page']}")
+```python
+answer = httpx.post(
+    f"{BASE}/api/v1/query",
+    headers=HEADERS,
+    json={"query": "What are the key findings?", "document_id": document_id},
+).json()["answer"]
+
+print(answer)
 ```
 
 ## Next Steps
@@ -82,6 +79,6 @@ for citation in result["citations"]:
     Full endpoint documentation with all parameters
   </Card>
   <Card title="Polyvia MCP Server" icon="plug" href="/products/mcp">
-    Connect Polyvia to Claude Desktop and Cursor
+    Connect Polyvia to Claude Desktop and other AI tools
   </Card>
 </CardGroup>

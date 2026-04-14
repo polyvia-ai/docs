@@ -1,30 +1,16 @@
 ---
 title: 'API Reference'
-description: 'Build visual search and reasoning into your applications'
+description: 'Build document ingestion and querying into your applications'
 ---
 
-Welcome to the Polyvia API documentation. Our API enables you to build applications that extract, index, and reason over visual data at scale.
-
-## Two Simple Endpoints
-
-Polyvia's API is built around two core operations:
-
-<Steps>
-<Step title="Ingest">
-  Upload documents to extract visual logic and index facts into your knowledge base
-</Step>
-
-<Step title="Query">
-  Search and reason over your visual knowledge base with audit-ready citations
-</Step>
-</Steps>
+Welcome to the Polyvia API documentation. Our API enables you to upload documents, track ingestion status, and ask natural-language questions across your workspace.
 
 ## Authentication
 
 All API requests require authentication using an API key. Include your key in the `Authorization` header:
 
 ```bash
-Authorization: Bearer YOUR_API_KEY
+Authorization: Bearer poly_<your-key>
 ```
 
 <Warning>
@@ -33,103 +19,86 @@ Keep your API key secure. Never expose it in client-side code or public reposito
 
 ## Getting Your API Key
 
-1. Log in to [Polyvia Studio](https://app.polyvia.ai)
-2. Navigate to **Settings** > **API Keys**
-3. Click **Create New Key**
-4. Copy and securely store your key
+1. Sign in to [Polyvia](https://app.polyvia.ai)
+2. Go to **Settings → API**
+3. Click **Create API Key**, give it a name, and optionally set an expiry date
+4. Copy the key — it is shown **only once**
+
+All keys start with `poly_`. To revoke a key, return to **Settings → API** and click the delete icon next to it.
 
 ## Base URL
 
 ```
-https://api.polyvia.ai
+https://app.polyvia.ai
 ```
+
+All endpoints are prefixed with `/api/v1`.
 
 ## Quick Start
 
-Here's a complete example: ingest documents and query for insights.
+Here's a complete example: ingest a document and query for insights.
 
 <CodeGroup>
 ```python Python
-import requests
+import httpx
+import time
 
-api_key = "YOUR_API_KEY"
-headers = {"Authorization": f"Bearer {api_key}"}
+API_KEY = "poly_<your-key>"
+BASE    = "https://app.polyvia.ai"
+HEADERS = {"Authorization": f"Bearer {API_KEY}"}
 
-# 1. Ingest a document
-with open("financial_report.pdf", "rb") as f:
-    response = requests.post(
-        "https://api.polyvia.ai/ingest",
-        headers=headers,
-        files={"file": f},
-        data={"name": "Q4 Financial Report"}
+# 1. Upload
+with open("report.pdf", "rb") as f:
+    resp = httpx.post(
+        f"{BASE}/api/v1/ingest",
+        headers=HEADERS,
+        files={"file": ("report.pdf", f, "application/pdf")},
+        data={"name": "Q4 Report"},
     )
-document_id = response.json()["document_id"]
+resp.raise_for_status()
+task_id     = resp.json()["task_id"]
+document_id = resp.json()["document_id"]
 
-# 2. Query your knowledge base
-response = requests.post(
-    "https://api.polyvia.ai/query",
-    headers={**headers, "Content-Type": "application/json"},
-    json={
-        "query": "What was the Q4 revenue?",
-        "include_citations": True
-    }
-)
+# 2. Poll until ingestion completes
+while True:
+    status = httpx.get(f"{BASE}/api/v1/ingest/{task_id}", headers=HEADERS).json()["status"]
+    print(f"Status: {status}")
+    if status in ("completed", "failed"):
+        break
+    time.sleep(5)
 
-result = response.json()
-print(result["answer"])
-# "Q4 2024 revenue was $119.58B [page 24, revenue chart]"
+# 3. Query
+answer = httpx.post(
+    f"{BASE}/api/v1/query",
+    headers=HEADERS,
+    json={"query": "What are the key findings?", "document_id": document_id},
+).json()["answer"]
+
+print(answer)
 ```
 
-```javascript Node.js
-const apiKey = "YOUR_API_KEY";
+```bash cURL
+# 1. Upload
+curl -X POST https://app.polyvia.ai/api/v1/ingest \
+  -H "Authorization: Bearer poly_<your-key>" \
+  -F "file=@/path/to/report.pdf" \
+  -F "name=Q4 Report"
 
-// 1. Ingest a document
-const formData = new FormData();
-formData.append("file", fileBlob);
-formData.append("name", "Q4 Financial Report");
+# 2. Check status (replace TASK_ID)
+curl https://app.polyvia.ai/api/v1/ingest/TASK_ID \
+  -H "Authorization: Bearer poly_<your-key>"
 
-const ingestRes = await fetch("https://api.polyvia.ai/ingest", {
-  method: "POST",
-  headers: { Authorization: `Bearer ${apiKey}` },
-  body: formData,
-});
-const { document_id } = await ingestRes.json();
-
-// 2. Query your knowledge base
-const queryRes = await fetch("https://api.polyvia.ai/query", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${apiKey}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    query: "What was the Q4 revenue?",
-    include_citations: true,
-  }),
-});
-
-const result = await queryRes.json();
-console.log(result.answer);
-// "Q4 2024 revenue was $119.58B [page 24, revenue chart]"
+# 3. Query
+curl -X POST https://app.polyvia.ai/api/v1/query \
+  -H "Authorization: Bearer poly_<your-key>" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What are the key findings?", "document_id": "DOCUMENT_ID"}'
 ```
 </CodeGroup>
-
-## Rate Limits
-
-Rate limits vary by plan:
-
-- **Free**: 100 requests/day
-- **Pro**: 1,000 requests/day
-- **Enterprise**: Custom limits
-
-<Tip>
-Monitor your usage in Polyvia Studio to avoid hitting rate limits.
-</Tip>
 
 ## Support
 
 Need help? Reach out to our team:
 
 - **Email**: [senyao@polyvia.ai](mailto:senyao@polyvia.ai)
-- **Documentation**: [docs.polyvia.ai](https://docs.polyvia.ai)
 - **Studio**: [app.polyvia.ai](https://app.polyvia.ai)

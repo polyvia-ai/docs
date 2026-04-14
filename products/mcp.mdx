@@ -9,184 +9,153 @@ Polyvia implements the [Model Context Protocol (MCP)](https://modelcontextprotoc
 
 ## What is MCP?
 
-Model Context Protocol is an open standard that allows AI applications to securely access external data sources and tools. Polyvia's MCP server exposes your knowledge base as a set of tools and resources that AI assistants can use to answer questions with citations.
+Model Context Protocol is an open standard that allows AI applications to securely access external data sources and tools. Polyvia's MCP server exposes your document workspace as a set of tools that AI assistants can use to ingest, browse, and query your documents — all without leaving the conversation.
 
-## Installation
+## Connecting from Claude Desktop
 
-### Prerequisites
+Polyvia's MCP server is hosted at `https://app.polyvia.ai/mcp` and uses the streamable HTTP transport. No installation required.
 
-- Node.js 18+ or Python 3.10+
-- Polyvia account with API key
-- MCP-compatible client (Claude Desktop, Cline, etc.)
+Open (or create) `~/.claude/claude_desktop_config.json` and add the `polyvia` entry:
 
-### Setup with Claude Desktop
-
-<Steps>
-<Step title="Install the Polyvia MCP Server">
-  Install the MCP server package globally:
-
-  ```bash
-  npm install -g @polyvia/mcp-server
-  ```
-
-  Or using Python:
-
-  ```bash
-  pip install polyvia-mcp
-  ```
-</Step>
-
-<Step title="Configure Claude Desktop">
-  Add Polyvia to your Claude Desktop configuration file:
-
-  <Tabs>
-  <Tab title="macOS">
-    Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
-
-    ```json
-    {
-      "mcpServers": {
-        "polyvia": {
-          "command": "npx",
-          "args": ["-y", "@polyvia/mcp-server"],
-          "env": {
-            "POLYVIA_API_KEY": "your_api_key_here"
-          }
-        }
-      }
-    }
-    ```
-  </Tab>
-
-  <Tab title="Windows">
-    Edit `%APPDATA%\Claude\claude_desktop_config.json`:
-
-    ```json
-    {
-      "mcpServers": {
-        "polyvia": {
-          "command": "npx",
-          "args": ["-y", "@polyvia/mcp-server"],
-          "env": {
-            "POLYVIA_API_KEY": "your_api_key_here"
-          }
-        }
-      }
-    }
-    ```
-  </Tab>
-  </Tabs>
-
-  <Warning>
-  Never commit your API key to version control. Store it securely in environment variables.
-  </Warning>
-</Step>
-
-<Step title="Restart Claude Desktop">
-  Close and reopen Claude Desktop to load the MCP server.
-
-  <Check>
-  You should see Polyvia tools available in Claude's tool palette.
-  </Check>
-</Step>
-</Steps>
-
-## Available Tools
-
-The Polyvia MCP server provides the following tools:
-
-### `search_documents`
-
-Perform semantic search across your knowledge base.
-
-**Parameters:**
-- `query` (string, required): Search query
-- `limit` (integer, optional): Maximum results to return (default: 10)
-- `filters` (object, optional): Filter by document metadata
-
-**Example:**
 ```json
 {
-  "query": "What are the security features?",
-  "limit": 5
+  "mcpServers": {
+    "polyvia": {
+      "type": "http",
+      "url": "https://app.polyvia.ai/mcp",
+      "headers": {
+        "Authorization": "Bearer poly_<your-key>"
+      }
+    }
+  }
 }
 ```
 
-### `get_document`
+Restart Claude Desktop. You should see **Polyvia** appear in the MCP server list.
 
-Retrieve a specific document by ID with full content.
+<Tip>
+Generate a dedicated API key for your Claude Desktop client so you can revoke it independently.
+</Tip>
+
+## Available Tools
+
+### `polyvia_ingest_document`
+
+Upload a document from a public URL or raw base64 content.
 
 **Parameters:**
-- `document_id` (string, required): Document identifier
+- `source_url` (string, either/or): Publicly accessible URL of the document
+- `file_content_base64` (string, either/or): Base64-encoded file bytes
+- `file_name` (string, required with base64): Filename with extension (e.g. `report.pdf`)
+- `file_mime_type` (string, optional): MIME type; inferred from `file_name` if omitted
+- `name` (string, optional): Display name in Polyvia
 
-### `query_knowledge_base`
+Returns `{ "document_id", "task_id", "status": "pending" }`.
 
-Query your visual knowledge base for facts and insights.
+### `polyvia_check_ingestion_status`
+
+Poll a parse task started by `polyvia_ingest_document`.
 
 **Parameters:**
-- `query` (string, required): Natural language query
-- `include_citations` (boolean, optional): Include source citations (default: true)
+- `task_id` (string, required): From `polyvia_ingest_document`
 
-## Available Resources
+Returns `{ "task_id", "document_id", "status", "error" }`.
 
-MCP resources provide read access to your knowledge base:
+### `polyvia_list_documents`
 
-### `document://[document_id]`
+List documents in your workspace.
 
-Access individual documents as resources. Claude can read these directly without tool calls.
+**Parameters:**
+- `status` (string, optional): Filter by `uploading`, `parsing`, `completed`, or `failed`
+- `response_format` (string, optional): `markdown` (default) or `json`
 
-## Configuration Options
+### `polyvia_get_document`
 
-### Environment Variables
+Get metadata and summary for one document.
 
-<ParamField path="POLYVIA_API_KEY" type="string" required>
-  Your Polyvia API key from Polyvia Studio
-</ParamField>
+**Parameters:**
+- `document_id` (string, required): From `polyvia_list_documents`
+- `response_format` (string, optional): `markdown` (default) or `json`
 
-<ParamField path="POLYVIA_BASE_URL" type="string" default="https://api.polyvia.ai">
-  API base URL (for self-hosted instances)
-</ParamField>
+### `polyvia_query`
 
-<ParamField path="POLYVIA_TIMEOUT" type="integer" default="30000">
-  Request timeout in milliseconds
-</ParamField>
+Ask a natural-language question about your documents.
 
-## Usage Examples
+**Parameters:**
+- `query` (string, required): Your question (max 2000 chars)
+- `document_id` (string, optional): Scope to one document; omit to search all
 
-### Asking Questions with Citations
+Documents must have `status=completed` before they can be queried.
 
-Once configured, you can ask Claude questions that leverage your Polyvia knowledge base:
+## Example Workflows
 
-> "Using the Polyvia knowledge base, what are our company's data retention policies?"
+### Ingest a public PDF and ask a question
 
-Claude will automatically use the `search_documents` tool to find relevant information and provide cited answers.
+```
+User: Ingest this paper and tell me the main contributions:
+      https://arxiv.org/pdf/2501.12345
 
-### Comparing Data Across Documents
+Claude:
+  1. polyvia_ingest_document(source_url="https://arxiv.org/pdf/2501.12345")
+     → { document_id: "k57abc...", task_id: "3f2e..." }
 
-> "Compare Apple and Microsoft's Q4 2024 revenue based on the financial reports in Polyvia"
+  2. polyvia_check_ingestion_status(task_id="3f2e...")
+     → status: "parsing" … (waits) … status: "completed"
 
-Claude will query your visual knowledge base and return answers with citations pointing to the exact charts and tables.
+  3. polyvia_query(query="What are the main contributions?",
+                   document_id="k57abc...")
+     → "The paper introduces three key contributions: ..."
+```
+
+### Find information across your whole workspace
+
+```
+User: What do all my uploaded reports say about supply chain risks?
+
+Claude:
+  1. polyvia_list_documents(status="completed")
+     → lists completed documents
+
+  2. polyvia_query(query="What supply chain risks are mentioned across all reports?")
+     → "Across your documents, three recurring supply chain risks appear: ..."
+```
+
+### Check what documents you have before querying
+
+```
+User: Do I have anything about GDPR compliance?
+
+Claude:
+  1. polyvia_list_documents(status="completed", response_format="json")
+     → scans titles and summaries
+
+  2. polyvia_get_document(document_id="<matched-id>")
+     → confirms the document is about GDPR
+
+  3. polyvia_query(query="What does this document say about data retention?",
+                   document_id="<matched-id>")
+     → focused answer from that document
+```
 
 ## Troubleshooting
 
 <AccordionGroup>
 <Accordion title="MCP server not appearing in Claude">
-  - Verify the configuration file path is correct
-  - Check that the API key is valid
+  - Verify the configuration file path is correct (`~/.claude/claude_desktop_config.json`)
+  - Check that the API key is valid and starts with `poly_`
   - Restart Claude Desktop completely
   - Check Claude's logs for error messages
 </Accordion>
 
 <Accordion title="Authentication errors">
-  - Ensure your API key is correctly set in the environment variables
-  - Verify the API key has not expired
-  - Check that you have an active Polyvia subscription
+  - Ensure your API key is correctly set in the `Authorization` header
+  - Verify the API key has not been revoked or expired
+  - Check that you have an active Polyvia account
 </Accordion>
 
 <Accordion title="Slow response times">
-  - Large knowledge bases may take longer to search
-  - Consider using filters to narrow search scope
-  - Increase the `POLYVIA_TIMEOUT` value if needed
+  - Large workspaces may take longer to search
+  - Use `document_id` in `polyvia_query` to narrow to a specific document
 </Accordion>
 </AccordionGroup>
 
@@ -198,6 +167,6 @@ Claude will query your visual knowledge base and return answers with citations p
   </Card>
 
   <Card title="Polyvia Studio" icon="browser" href="/products/studio">
-    Upload documents and manage your knowledge base
+    Upload documents and manage your workspace
   </Card>
 </CardGroup>

@@ -1,0 +1,154 @@
+---
+title: "Documents"
+description: "List and retrieve documents in your workspace"
+---
+
+The Documents endpoints let you list all documents in your workspace and fetch metadata for individual documents.
+
+## List Documents
+
+List all documents in your workspace.
+
+### Endpoint
+
+`GET /api/v1/documents`
+
+### Query Parameters
+
+<ParamField query="status" type="string">
+  Filter by status: `uploading`, `parsing`, `completed`, `failed`
+</ParamField>
+
+### Response
+
+<ResponseField name="documents" type="array">
+  Array of document objects
+
+  <Expandable title="Document object">
+    <ResponseField name="id" type="string">
+      Document identifier
+    </ResponseField>
+
+    <ResponseField name="title" type="string">
+      Document display name
+    </ResponseField>
+
+    <ResponseField name="status" type="string">
+      Processing status: `uploading`, `parsing`, `completed`, `failed`
+    </ResponseField>
+
+    <ResponseField name="file_type" type="string">
+      MIME type of the uploaded file
+    </ResponseField>
+
+    <ResponseField name="summary" type="string">
+      AI-generated summary of the document
+    </ResponseField>
+
+    <ResponseField name="created_at" type="integer">
+      Unix timestamp (milliseconds) of when the document was uploaded
+    </ResponseField>
+
+    <ResponseField name="group_id" type="string | null">
+      Group identifier if the document belongs to a group
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+```bash cURL
+# List only completed documents
+curl "https://app.polyvia.ai/api/v1/documents?status=completed" \
+  -H "Authorization: Bearer poly_<your-key>"
+```
+
+<ResponseExample>
+```json Success
+{
+  "documents": [
+    {
+      "id":         "k57abc123...",
+      "title":      "Q4 2024 Report",
+      "status":     "completed",
+      "file_type":  "application/pdf",
+      "summary":    "This document covers Q4 financial results...",
+      "created_at": 1712345678000,
+      "group_id":   null
+    }
+  ]
+}
+```
+</ResponseExample>
+
+---
+
+## Get Document
+
+Fetch metadata for a single document.
+
+### Endpoint
+
+`GET /api/v1/documents/{document_id}`
+
+### Path Parameters
+
+<ParamField path="document_id" type="string" required>
+  The document identifier
+</ParamField>
+
+### Response
+
+<ResponseField name="id" type="string">
+  Document identifier
+</ResponseField>
+
+<ResponseField name="title" type="string">
+  Document display name
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Processing status: `uploading`, `parsing`, `completed`, `failed`
+</ResponseField>
+
+<ResponseField name="file_type" type="string">
+  MIME type of the uploaded file
+</ResponseField>
+
+<ResponseField name="file_url" type="string">
+  Signed URL to download the original file
+</ResponseField>
+
+<ResponseField name="summary" type="string">
+  AI-generated summary of the document
+</ResponseField>
+
+<ResponseField name="created_at" type="integer">
+  Unix timestamp (milliseconds) of when the document was uploaded
+</ResponseField>
+
+<ResponseField name="group_id" type="string | null">
+  Group identifier if the document belongs to a group
+</ResponseField>
+
+### Example
+
+```bash cURL
+curl "https://app.polyvia.ai/api/v1/documents/k57abc123..." \
+  -H "Authorization: Bearer poly_<your-key>"
+```
+
+<ResponseExample>
+```json Success
+{
+  "id":         "k57abc123...",
+  "title":      "Q4 2024 Report",
+  "status":     "completed",
+  "file_type":  "application/pdf",
+  "file_url":   "https://...",
+  "summary":    "This document covers Q4 financial results...",
+  "created_at": 1712345678000,
+  "group_id":   null
+}
+```
+</ResponseExample>

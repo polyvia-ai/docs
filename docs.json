@@ -43,6 +43,7 @@
             "group": "Endpoints",
             "pages": [
               "api-reference/endpoint/ingest",
+              "api-reference/endpoint/documents",
               "api-reference/endpoint/query"
             ]
           }

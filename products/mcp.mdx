@@ -83,9 +83,60 @@ Ask a natural-language question about your documents.
 
 **Parameters:**
 - `query` (string, required): Your question (max 2000 chars)
-- `document_id` (string, optional): Scope to one document; omit to search all
+- `document_id` (string, optional): Scope to one document
+- `group_id` (string, optional): Scope to documents in a specific group
+- `group_ids` (string[], optional): Scope to documents across multiple groups
+- Omit all three to search your entire workspace
 
 Documents must have `status=completed` before they can be queried.
+
+---
+
+### `polyvia_list_groups`
+
+List all groups in your workspace.
+
+No parameters required. Returns an array of group objects with `id`, `name`, `color`, and `created_at`.
+
+---
+
+### `polyvia_create_group`
+
+Create a new group.
+
+**Parameters:**
+- `name` (string, required): Display name for the group
+
+Returns `{ "group_id": "g_..." }`.
+
+---
+
+### `polyvia_update_document`
+
+Move a document to a different group, or remove it from its current group.
+
+**Parameters:**
+- `document_id` (string, required): The document to update
+- `group_id` (string | null, required): Target group ID, or `null` to remove from any group
+
+---
+
+### `polyvia_delete_document`
+
+Permanently delete a document and all its indexed content.
+
+**Parameters:**
+- `document_id` (string, required): The document to delete
+
+---
+
+### `polyvia_delete_group`
+
+Delete a group. The group must be empty, or you must pass `delete_documents: true` to wipe its documents first.
+
+**Parameters:**
+- `group_id` (string, required): The group to delete
+- `delete_documents` (boolean, optional): If `true`, delete all documents in the group before deleting the group itself. Defaults to `false`.
 
 ## Example Workflows
 

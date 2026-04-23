@@ -7,7 +7,7 @@ The Ingest endpoints handle document uploads and status polling. Parsing runs as
 
 ## Upload Document
 
-Upload a file for parsing and indexing.
+Upload a single file for parsing and indexing.
 
 ### Endpoint
 
@@ -23,6 +23,10 @@ Upload a file for parsing and indexing.
 
 <ParamField body="name" type="string">
   Display name in your workspace. Defaults to the filename if omitted.
+</ParamField>
+
+<ParamField body="group_id" type="string">
+  Assign the document to a group on upload.
 </ParamField>
 
 ### Response
@@ -45,7 +49,8 @@ Upload a file for parsing and indexing.
 curl -X POST https://app.polyvia.ai/api/v1/ingest \
   -H "Authorization: Bearer poly_<your-key>" \
   -F "file=@/path/to/report.pdf" \
-  -F "name=Q4 2024 Report"
+  -F "name=Q4 2024 Report" \
+  -F "group_id=g_..."
 ```
 
 <ResponseExample>
@@ -60,9 +65,95 @@ curl -X POST https://app.polyvia.ai/api/v1/ingest \
 
 ---
 
+## Upload Multiple Documents
+
+Upload several files in a single request. Each file is queued as an independent ingestion task.
+
+### Endpoint
+
+`POST /api/v1/ingest/batch`
+
+### Request Body
+
+`multipart/form-data`
+
+<ParamField body="files" type="file[]" required>
+  One or more files to upload (repeat the `files` field for each file).
+</ParamField>
+
+<ParamField body="names" type="string[]">
+  Display names for each file in the same order as `files`. If omitted, filenames are used.
+</ParamField>
+
+<ParamField body="group_id" type="string">
+  Assign all uploaded documents to this group.
+</ParamField>
+
+### Response
+
+<ResponseField name="results" type="array">
+  One entry per file, in the same order as `files`.
+
+  <Expandable title="Result object">
+    <ResponseField name="document_id" type="string">
+      Document identifier
+    </ResponseField>
+    <ResponseField name="task_id" type="string">
+      Ingestion task identifier — poll this to track status
+    </ResponseField>
+    <ResponseField name="status" type="string">
+      Always `pending` on upload
+    </ResponseField>
+    <ResponseField name="error" type="string | null">
+      Present only if this file failed to queue
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://app.polyvia.ai/api/v1/ingest/batch \
+  -H "Authorization: Bearer poly_<your-key>" \
+  -F "files=@q3.pdf" \
+  -F "files=@q4.pdf" \
+  -F "names=Q3 Report" \
+  -F "names=Q4 Report" \
+  -F "group_id=g_..."
+```
+
+```python Python SDK
+from polyvia import Polyvia
+
+client = Polyvia(api_key="poly_...")
+
+batch = client.ingest.batch(
+    ["q3.pdf", "q4.pdf"],
+    names=["Q3 Report", "Q4 Report"],
+    group_id="g_...",
+)
+for item in batch:
+    client.ingest.wait(item.task_id)
+```
+</CodeGroup>
+
+<ResponseExample>
+```json Success
+{
+  "results": [
+    { "document_id": "k57abc...", "task_id": "3f2e...", "status": "pending", "error": null },
+    { "document_id": "k57def...", "task_id": "4a1b...", "status": "pending", "error": null }
+  ]
+}
+```
+</ResponseExample>
+
+---
+
 ## Check Ingestion Status
 
-Poll a parse task started by the upload endpoint.
+Poll a parse task started by either upload endpoint.
 
 ### Endpoint
 
@@ -71,7 +162,7 @@ Poll a parse task started by the upload endpoint.
 ### Path Parameters
 
 <ParamField path="task_id" type="string" required>
-  The task identifier returned by `POST /api/v1/ingest`
+  The task identifier returned by `POST /api/v1/ingest` or `POST /api/v1/ingest/batch`
 </ParamField>
 
 ### Response
@@ -119,18 +210,13 @@ while true; do
 done
 ```
 
-```python Python
-import httpx, time
+```python Python SDK
+from polyvia import Polyvia
 
-HEADERS = {"Authorization": "Bearer poly_<your-key>"}
-BASE    = "https://app.polyvia.ai"
+client = Polyvia(api_key="poly_...")
 
-while True:
-    status = httpx.get(f"{BASE}/api/v1/ingest/3f2e1d0c-...", headers=HEADERS).json()["status"]
-    print(f"Status: {status}")
-    if status in ("completed", "failed"):
-        break
-    time.sleep(5)
+# Blocks until done — raises IngestionError on failure
+done = client.ingest.wait(task_id, poll_interval=5, timeout=300)
 ```
 </CodeGroup>
 

@@ -3,7 +3,7 @@ title: "Query"
 description: "Ask natural-language questions about your documents"
 ---
 
-The Query endpoint lets you ask questions about your documents using natural language. You can query across your entire workspace or scope a query to a single document.
+The Query endpoint lets you ask questions about your documents using natural language. Scope the query to a single document, a group (or multiple groups), or leave it unscoped to search your entire workspace.
 
 ## Query Documents
 
@@ -11,8 +11,14 @@ The Query endpoint lets you ask questions about your documents using natural lan
 
 `POST /api/v1/query`
 
-- **Without `document_id`:** Polyvia searches across all your completed documents and composes an answer with citations.
-- **With `document_id`:** The answer is grounded in that specific document only (faster and more focused).
+### Scoping behaviour
+
+| Parameters provided | Scope |
+|---------------------|-------|
+| *(none)* | All completed documents in your workspace |
+| `document_id` | That document only (fastest) |
+| `group_id` | All completed documents in that group |
+| `group_ids` | All completed documents across those groups |
 
 ### Request Body
 
@@ -23,7 +29,15 @@ The Query endpoint lets you ask questions about your documents using natural lan
 </ParamField>
 
 <ParamField body="document_id" type="string">
-  Restrict the query to a single document. Omit to search across all completed documents.
+  Restrict the query to a single document.
+</ParamField>
+
+<ParamField body="group_id" type="string">
+  Restrict the query to documents in a specific group. Cannot be combined with `document_id` or `group_ids`.
+</ParamField>
+
+<ParamField body="group_ids" type="string[]">
+  Restrict the query to documents across multiple groups. Cannot be combined with `document_id` or `group_id`.
 </ParamField>
 
 ### Response
@@ -33,20 +47,20 @@ The Query endpoint lets you ask questions about your documents using natural lan
 </ResponseField>
 
 <ResponseField name="document_id" type="string">
-  The document used to answer the query (present when querying a single document)
+  The document used to answer (present only for single-document queries)
 </ResponseField>
 
 ### Examples
 
 <CodeGroup>
-```bash Cross-document query
+```bash All documents
 curl -X POST https://app.polyvia.ai/api/v1/query \
   -H "Authorization: Bearer poly_<your-key>" \
   -H "Content-Type: application/json" \
   -d '{"query": "What risks are mentioned across all reports?"}'
 ```
 
-```bash Single-document query
+```bash Single document
 curl -X POST https://app.polyvia.ai/api/v1/query \
   -H "Authorization: Bearer poly_<your-key>" \
   -H "Content-Type: application/json" \
@@ -56,30 +70,44 @@ curl -X POST https://app.polyvia.ai/api/v1/query \
   }'
 ```
 
-```python Python
-import httpx
+```bash Group query
+curl -X POST https://app.polyvia.ai/api/v1/query \
+  -H "Authorization: Bearer poly_<your-key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query":    "What are the key findings?",
+    "group_id": "g_finance"
+  }'
+```
 
-HEADERS = {"Authorization": "Bearer poly_<your-key>"}
-BASE    = "https://app.polyvia.ai"
+```bash Multi-group query
+curl -X POST https://app.polyvia.ai/api/v1/query \
+  -H "Authorization: Bearer poly_<your-key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query":     "Compare the Q3 and Q4 results.",
+    "group_ids": ["g_q3", "g_q4"]
+  }'
+```
 
-# Cross-document query
-resp = httpx.post(
-    f"{BASE}/api/v1/query",
-    headers=HEADERS,
-    json={"query": "What risks are mentioned across all reports?"},
-)
-print(resp.json()["answer"])
+```python Python SDK
+from polyvia import Polyvia
 
-# Single-document query
-resp = httpx.post(
-    f"{BASE}/api/v1/query",
-    headers=HEADERS,
-    json={
-        "query":       "What is the executive summary?",
-        "document_id": "k57abc123...",
-    },
-)
-print(resp.json()["answer"])
+client = Polyvia(api_key="poly_...")
+
+# All documents
+answer = client.query("What risks are mentioned across all reports?")
+
+# Single document (fastest)
+answer = client.query("Summarise section 3.", document_id="doc_...")
+
+# Group
+answer = client.query("Key findings?", group_id="g_finance")
+
+# Multiple groups
+answer = client.query("Compare Q3 vs Q4.", group_ids=["g_q3", "g_q4"])
+
+print(answer.answer)
 ```
 </CodeGroup>
 

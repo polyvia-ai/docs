@@ -1,13 +1,13 @@
 ---
 title: "Documents"
-description: "List and retrieve documents in your workspace"
+description: "List, retrieve, update, and delete documents in your workspace"
 ---
 
-The Documents endpoints let you list all documents in your workspace and fetch metadata for individual documents.
+The Documents endpoints let you list, fetch, update, and delete documents in your workspace.
 
 ## List Documents
 
-List all documents in your workspace.
+List documents in your workspace with optional filters.
 
 ### Endpoint
 
@@ -17,6 +17,15 @@ List all documents in your workspace.
 
 <ParamField query="status" type="string">
   Filter by status: `uploading`, `parsing`, `completed`, `failed`
+</ParamField>
+
+<ParamField query="group_id" type="string">
+  Filter to documents in a specific group.
+</ParamField>
+
+<ParamField query="group_ids" type="string">
+  Comma-separated list of group IDs. Returns documents belonging to any of the specified groups.
+  Cannot be combined with `group_id`.
 </ParamField>
 
 ### Response
@@ -50,18 +59,41 @@ List all documents in your workspace.
     </ResponseField>
 
     <ResponseField name="group_id" type="string | null">
-      Group identifier if the document belongs to a group
+      Group identifier if the document belongs to a group, otherwise `null`
     </ResponseField>
   </Expandable>
 </ResponseField>
 
-### Example
+### Examples
 
-```bash cURL
-# List only completed documents
+<CodeGroup>
+```bash All completed documents
 curl "https://app.polyvia.ai/api/v1/documents?status=completed" \
   -H "Authorization: Bearer poly_<your-key>"
 ```
+
+```bash Filter by group
+curl "https://app.polyvia.ai/api/v1/documents?group_id=g_..." \
+  -H "Authorization: Bearer poly_<your-key>"
+```
+
+```bash Filter by multiple groups
+curl "https://app.polyvia.ai/api/v1/documents?group_ids=g_abc,g_def" \
+  -H "Authorization: Bearer poly_<your-key>"
+```
+
+```python Python SDK
+from polyvia import Polyvia
+
+client = Polyvia(api_key="poly_...")
+
+# Filter by status and group
+docs = client.documents.list(status="completed", group_id="g_...")
+
+# Filter across multiple groups
+docs = client.documents.list(group_ids=["g_abc", "g_def"])
+```
+</CodeGroup>
 
 <ResponseExample>
 ```json Success
@@ -74,7 +106,7 @@ curl "https://app.polyvia.ai/api/v1/documents?status=completed" \
       "file_type":  "application/pdf",
       "summary":    "This document covers Q4 financial results...",
       "created_at": 1712345678000,
-      "group_id":   null
+      "group_id":   "g_finance"
     }
   ]
 }
@@ -99,37 +131,14 @@ Fetch metadata for a single document.
 
 ### Response
 
-<ResponseField name="id" type="string">
-  Document identifier
-</ResponseField>
-
-<ResponseField name="title" type="string">
-  Document display name
-</ResponseField>
-
-<ResponseField name="status" type="string">
-  Processing status: `uploading`, `parsing`, `completed`, `failed`
-</ResponseField>
-
-<ResponseField name="file_type" type="string">
-  MIME type of the uploaded file
-</ResponseField>
-
-<ResponseField name="file_url" type="string">
-  Signed URL to download the original file
-</ResponseField>
-
-<ResponseField name="summary" type="string">
-  AI-generated summary of the document
-</ResponseField>
-
-<ResponseField name="created_at" type="integer">
-  Unix timestamp (milliseconds) of when the document was uploaded
-</ResponseField>
-
-<ResponseField name="group_id" type="string | null">
-  Group identifier if the document belongs to a group
-</ResponseField>
+<ResponseField name="id" type="string">Document identifier</ResponseField>
+<ResponseField name="title" type="string">Document display name</ResponseField>
+<ResponseField name="status" type="string">Processing status: `uploading`, `parsing`, `completed`, `failed`</ResponseField>
+<ResponseField name="file_type" type="string">MIME type of the uploaded file</ResponseField>
+<ResponseField name="file_url" type="string">Signed URL to download the original file</ResponseField>
+<ResponseField name="summary" type="string">AI-generated summary of the document</ResponseField>
+<ResponseField name="created_at" type="integer">Unix timestamp (milliseconds) of upload</ResponseField>
+<ResponseField name="group_id" type="string | null">Group identifier if the document belongs to a group</ResponseField>
 
 ### Example
 
@@ -148,7 +157,103 @@ curl "https://app.polyvia.ai/api/v1/documents/k57abc123..." \
   "file_url":   "https://...",
   "summary":    "This document covers Q4 financial results...",
   "created_at": 1712345678000,
-  "group_id":   null
+  "group_id":   "g_finance"
 }
 ```
 </ResponseExample>
+
+---
+
+## Update Document
+
+Update a document's group assignment. Pass `null` to remove it from its current group.
+
+### Endpoint
+
+`PATCH /api/v1/documents/{document_id}`
+
+### Path Parameters
+
+<ParamField path="document_id" type="string" required>
+  The document identifier
+</ParamField>
+
+### Request Body
+
+`application/json`
+
+<ParamField body="group_id" type="string | null" required>
+  The group to assign the document to, or `null` to remove it from any group.
+</ParamField>
+
+### Example
+
+<CodeGroup>
+```bash Move to a group
+curl -X PATCH "https://app.polyvia.ai/api/v1/documents/k57abc123..." \
+  -H "Authorization: Bearer poly_<your-key>" \
+  -H "Content-Type: application/json" \
+  -d '{"group_id": "g_finance"}'
+```
+
+```bash Remove from group
+curl -X PATCH "https://app.polyvia.ai/api/v1/documents/k57abc123..." \
+  -H "Authorization: Bearer poly_<your-key>" \
+  -H "Content-Type: application/json" \
+  -d '{"group_id": null}'
+```
+
+```python Python SDK
+from polyvia import Polyvia
+
+client = Polyvia(api_key="poly_...")
+
+client.documents.update("k57abc123...", group_id="g_finance")  # move
+client.documents.update("k57abc123...", group_id=None)         # remove from group
+```
+</CodeGroup>
+
+<ResponseExample>
+```json Success
+{ "ok": true }
+```
+</ResponseExample>
+
+---
+
+## Delete Document
+
+Permanently delete a document and all its indexed content.
+
+### Endpoint
+
+`DELETE /api/v1/documents/{document_id}`
+
+### Path Parameters
+
+<ParamField path="document_id" type="string" required>
+  The document identifier
+</ParamField>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X DELETE "https://app.polyvia.ai/api/v1/documents/k57abc123..." \
+  -H "Authorization: Bearer poly_<your-key>"
+```
+
+```python Python SDK
+client.documents.delete("k57abc123...")
+```
+</CodeGroup>
+
+<ResponseExample>
+```json Success
+{ "ok": true }
+```
+</ResponseExample>
+
+<Warning>
+Deletion is permanent and cannot be undone. All indexed content for the document is removed immediately.
+</Warning>

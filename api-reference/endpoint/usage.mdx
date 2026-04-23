@@ -1,0 +1,147 @@
+---
+title: "Usage & Rate Limits"
+description: "Monitor your API consumption and current rate-limit headroom"
+---
+
+These endpoints let you track how much of your plan you've used and how much capacity you have right now.
+
+## Get Usage
+
+Return request and document counts for the current API key, both for the current calendar month and all-time.
+
+### Endpoint
+
+`GET /api/v1/usage`
+
+### Response
+
+<ResponseField name="usage" type="object">
+  <Expandable title="Usage object">
+    <ResponseField name="requests" type="object">
+      <Expandable title="Requests counters">
+        <ResponseField name="period" type="integer">Requests made this calendar month</ResponseField>
+        <ResponseField name="total" type="integer">All-time request count</ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="ingests" type="object">
+      <Expandable title="Ingest counters">
+        <ResponseField name="period" type="integer">Documents ingested this calendar month</ResponseField>
+        <ResponseField name="total" type="integer">All-time ingest count</ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="queries" type="object">
+      <Expandable title="Query counters">
+        <ResponseField name="period" type="integer">Queries made this calendar month</ResponseField>
+        <ResponseField name="total" type="integer">All-time query count</ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="documents_stored" type="integer">
+      Number of documents currently in your workspace
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl "https://app.polyvia.ai/api/v1/usage" \
+  -H "Authorization: Bearer poly_<your-key>"
+```
+
+```python Python SDK
+from polyvia import Polyvia
+
+client = Polyvia(api_key="poly_...")
+
+usage = client.usage()
+print(usage.usage.requests.period)    # requests this month
+print(usage.usage.requests.total)     # all-time
+print(usage.usage.documents_stored)   # live document count
+```
+</CodeGroup>
+
+<ResponseExample>
+```json Success
+{
+  "usage": {
+    "requests":        { "period": 142,  "total": 3801  },
+    "ingests":         { "period": 12,   "total": 204   },
+    "queries":         { "period": 130,  "total": 3597  },
+    "documents_stored": 47
+  }
+}
+```
+</ResponseExample>
+
+---
+
+## Get Rate Limits
+
+Return the rate-limit thresholds for your plan and how much capacity remains right now.
+
+### Endpoint
+
+`GET /api/v1/rate-limits`
+
+### Response
+
+<ResponseField name="limits" type="object">
+  Hard limits for your plan (requests per minute, per month, etc.)
+</ResponseField>
+
+<ResponseField name="current" type="object">
+  Real-time headroom — how much capacity remains in each window.
+</ResponseField>
+
+<ResponseField name="resets_at" type="object">
+  ISO 8601 timestamps of when each counter resets.
+
+  <Expandable title="resets_at fields">
+    <ResponseField name="minute" type="string">When the per-minute window resets</ResponseField>
+    <ResponseField name="month" type="string">When the monthly counters reset (first day of next month)</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl "https://app.polyvia.ai/api/v1/rate-limits" \
+  -H "Authorization: Bearer poly_<your-key>"
+```
+
+```python Python SDK
+limits = client.rate_limits()
+print(limits.limits["requests_per_minute"])
+print(limits.current["remaining_this_minute"])
+print(limits.resets_at.month)   # ISO timestamp of next monthly reset
+```
+</CodeGroup>
+
+<ResponseExample>
+```json Success
+{
+  "limits": {
+    "requests_per_minute": 60,
+    "requests_per_month":  10000,
+    "documents_per_month": 500,
+    "queries_per_month":   2000
+  },
+  "current": {
+    "remaining_this_minute": 58,
+    "remaining_requests_this_month":  9858,
+    "remaining_documents_this_month": 488,
+    "remaining_queries_this_month":   1870
+  },
+  "resets_at": {
+    "minute": "2025-04-23T14:32:00Z",
+    "month":  "2025-05-01T00:00:00Z"
+  }
+}
+```
+</ResponseExample>
+
+<Note>
+Rate limits are informational — the API does not block requests when limits are reached, but you should monitor these values and implement back-off logic in production integrations.
+</Note>

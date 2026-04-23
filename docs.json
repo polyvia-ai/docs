@@ -24,6 +24,7 @@
             "group": "Products",
             "pages": [
               "products/api",
+              "products/python-sdk",
               "products/mcp",
               "products/studio"
             ]
@@ -44,7 +45,9 @@
             "pages": [
               "api-reference/endpoint/ingest",
               "api-reference/endpoint/documents",
-              "api-reference/endpoint/query"
+              "api-reference/endpoint/groups",
+              "api-reference/endpoint/query",
+              "api-reference/endpoint/usage"
             ]
           }
         ]

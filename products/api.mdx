@@ -4,72 +4,105 @@ description: "REST API for document ingestion and querying"
 icon: "terminal"
 ---
 
-The Polyvia API provides programmatic access to document ingestion and natural-language querying. Build applications that upload documents, track processing status, and ask questions across your workspace.
+The Polyvia API provides programmatic access to document ingestion, group management, natural-language querying, and workspace analytics. Build applications that upload documents, organise them into groups, and ask questions across your workspace.
 
 ## Overview
 
-The API is built around three core operations:
-
 <CardGroup cols={3}>
   <Card title="/api/v1/ingest" icon="file-arrow-up">
-    Upload documents and poll ingestion status
+    Upload single or multiple documents and poll ingestion status
   </Card>
   <Card title="/api/v1/documents" icon="folder-open">
-    List and retrieve documents in your workspace
+    List, update, and delete documents in your workspace
+  </Card>
+  <Card title="/api/v1/groups" icon="layer-group">
+    Create and manage document groups
   </Card>
   <Card title="/api/v1/query" icon="magnifying-glass">
-    Ask natural-language questions across your documents
+    Ask natural-language questions — workspace-wide, by group, or per document
+  </Card>
+  <Card title="/api/v1/usage" icon="chart-bar">
+    Monitor request and document counts for the current period
+  </Card>
+  <Card title="/api/v1/rate-limits" icon="gauge">
+    Check your plan limits and remaining capacity
   </Card>
 </CardGroup>
 
 ## Quick Example
 
-Here's a complete workflow: upload a document, wait for ingestion, then query for insights.
+Here's a complete workflow: ingest two documents into a group, wait for processing, then query across them.
 
-### 1. Ingest a Document
+### 1. Create a Group
 
 ```python
 import httpx
-import time
 
 API_KEY = "poly_<your-key>"
 BASE    = "https://app.polyvia.ai"
 HEADERS = {"Authorization": f"Bearer {API_KEY}"}
 
-# Upload
-with open("report.pdf", "rb") as f:
-    resp = httpx.post(
-        f"{BASE}/api/v1/ingest",
-        headers=HEADERS,
-        files={"file": ("report.pdf", f, "application/pdf")},
-        data={"name": "Q4 Report"},
-    )
-resp.raise_for_status()
-task_id     = resp.json()["task_id"]
-document_id = resp.json()["document_id"]
+group_id = httpx.post(
+    f"{BASE}/api/v1/groups",
+    headers=HEADERS,
+    json={"name": "Finance"},
+).json()["group_id"]
 ```
 
-### 2. Poll Until Ready
+### 2. Ingest Documents
 
 ```python
-while True:
-    status = httpx.get(f"{BASE}/api/v1/ingest/{task_id}", headers=HEADERS).json()["status"]
-    print(f"Status: {status}")
-    if status in ("completed", "failed"):
-        break
-    time.sleep(5)
+import time
+
+with open("q3.pdf", "rb") as f:
+    r1 = httpx.post(f"{BASE}/api/v1/ingest", headers=HEADERS,
+                    files={"file": ("q3.pdf", f)},
+                    data={"name": "Q3 Report", "group_id": group_id}).json()
+
+with open("q4.pdf", "rb") as f:
+    r2 = httpx.post(f"{BASE}/api/v1/ingest", headers=HEADERS,
+                    files={"file": ("q4.pdf", f)},
+                    data={"name": "Q4 Report", "group_id": group_id}).json()
+
+# Wait for both
+for task_id in [r1["task_id"], r2["task_id"]]:
+    while True:
+        status = httpx.get(f"{BASE}/api/v1/ingest/{task_id}", headers=HEADERS).json()["status"]
+        if status in ("completed", "failed"):
+            break
+        time.sleep(5)
 ```
 
-### 3. Query Your Document
+### 3. Query the Group
 
 ```python
 answer = httpx.post(
     f"{BASE}/api/v1/query",
     headers=HEADERS,
-    json={"query": "What are the key findings?", "document_id": document_id},
+    json={"query": "Compare the key findings.", "group_id": group_id},
 ).json()["answer"]
 
 print(answer)
+```
+
+### Or use the Python SDK
+
+The same workflow is much simpler with `pip install polyvia`:
+
+```python
+from polyvia import Polyvia
+
+client = Polyvia(api_key="poly_...")
+
+group_id = client.groups.create("Finance")["group_id"]
+
+batch = client.ingest.batch(["q3.pdf", "q4.pdf"],
+                             names=["Q3 Report", "Q4 Report"],
+                             group_id=group_id)
+for item in batch:
+    client.ingest.wait(item.task_id)
+
+print(client.query("Compare the key findings.", group_id=group_id).answer)
 ```
 
 ## Next Steps
@@ -78,7 +111,13 @@ print(answer)
   <Card title="API Reference" icon="book" href="/api-reference/introduction">
     Full endpoint documentation with all parameters
   </Card>
+  <Card title="Python SDK" icon="python" href="/products/python-sdk">
+    Typed SDK with MCP and agent-tools support
+  </Card>
   <Card title="Polyvia MCP Server" icon="plug" href="/products/mcp">
     Connect Polyvia to Claude Desktop and other AI tools
+  </Card>
+  <Card title="Polyvia Studio" icon="browser" href="https://app.polyvia.ai">
+    Upload and manage documents in the web UI
   </Card>
 </CardGroup>

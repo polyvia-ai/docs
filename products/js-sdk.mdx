@@ -1,0 +1,293 @@
+---
+title: "JavaScript / TypeScript SDK"
+description: "Official JS/TS SDK for the Polyvia API and MCP server"
+icon: "js"
+---
+
+The `polyvia` npm package wraps the entire REST API in a fully-typed, ESM/CJS-compatible client and provides first-class support for connecting to the Polyvia MCP server from any AI framework.
+
+```bash
+npm install polyvia
+```
+
+Requires Node.js 18+. Works in TypeScript and plain JavaScript.
+
+---
+
+## Quick Start
+
+```ts
+import { Polyvia } from "polyvia";
+
+const client = new Polyvia({ apiKey: "poly_..." });
+
+// Ingest → wait → query
+const result = await client.ingest.file("report.pdf", { name: "Q4 Report" });
+await client.ingest.wait(result.task_id);
+const answer = await client.query("What are the key findings?");
+console.log(answer.answer);
+```
+
+Or set `POLYVIA_API_KEY` in your environment and omit the argument:
+
+```bash
+export POLYVIA_API_KEY=poly_...
+```
+
+```ts
+const client = new Polyvia();
+```
+
+---
+
+## REST API
+
+### Ingest
+
+```ts
+// Single file — accepts a file path, Buffer, or Blob
+const result = await client.ingest.file("report.pdf", {
+  name: "Q4 Report",
+  groupId: "g_...",
+});
+
+// Multiple files
+const items = await client.ingest.batch(["q3.pdf", "q4.pdf"], {
+  names: ["Q3 Report", "Q4 Report"],
+  groupId: "g_...",
+});
+
+// Check status
+const status = await client.ingest.status(result.task_id);
+
+// Block until done — throws IngestionError on failure, IngestionTimeout on timeout
+await client.ingest.wait(result.task_id, { pollInterval: 5, timeout: 300 });
+```
+
+### Query
+
+```ts
+// All completed documents
+const answer = await client.query("What risks are mentioned across all reports?");
+
+// Single document (fastest)
+const answer = await client.query("Summarise section 3.", { documentId: "doc_..." });
+
+// Scoped to a group
+const answer = await client.query("Key findings?", { groupId: "g_..." });
+
+// Multiple groups
+const answer = await client.query("Compare results.", { groupIds: ["g_...", "g_..."] });
+
+console.log(answer.answer);
+```
+
+### Groups
+
+```ts
+// Create
+const { group_id } = await client.groups.create("Finance");
+
+// List
+const groups = await client.groups.list();
+
+// Delete all documents in a group, then the group itself
+await client.groups.delete(group_id, { deleteDocuments: true });
+```
+
+### Documents
+
+```ts
+// List — filter by status and/or group
+const docs = await client.documents.list({ status: "completed", groupId: "g_..." });
+const docs = await client.documents.list({ groupIds: ["g_...", "g_..."] });
+
+// Get one
+const doc = await client.documents.get("doc_...");
+
+// Move to a different group / remove from group
+await client.documents.update("doc_...", { groupId: "g_other" });
+await client.documents.update("doc_...", { groupId: null });
+
+// Delete
+await client.documents.delete("doc_...");
+```
+
+### Usage & Rate Limits
+
+```ts
+const usage = await client.usage();
+console.log(usage.usage.requests.period);    // requests this calendar month
+console.log(usage.usage.documents_stored);   // live document count
+
+const limits = await client.rateLimits();
+console.log(limits.limits["requests_per_minute"]);
+console.log(limits.current["remaining_this_minute"]);
+```
+
+---
+
+## MCP Server
+
+`client.mcp` returns an `MCPConfig` object with a helper for every major client:
+
+| Method | Use with |
+|--------|----------|
+| `toAnthropicMcpServer()` | `ant.beta.messages.create({ mcp_servers: [...] })` |
+| `toOpenAIResponsesTool()` | `oai.responses.create({ tools: [...] })` |
+| `toOpenAIMcpServer()` | OpenAI Agents SDK `MCPServerStreamableHTTP` |
+| `toClaudeDesktopConfig()` | `~/.claude/claude_desktop_config.json` |
+
+### Anthropic beta MCP client
+
+```ts
+import Anthropic from "@anthropic-ai/sdk";
+import { Polyvia } from "polyvia";
+
+const polyvia = new Polyvia({ apiKey: "poly_..." });
+const ant = new Anthropic();
+
+const response = await ant.beta.messages.create({
+  model: "claude-opus-4-5",
+  max_tokens: 1000,
+  messages: [{ role: "user", content: "What are my Q4 findings?" }],
+  mcp_servers: [polyvia.mcp.toAnthropicMcpServer()],
+  betas: ["mcp-client-2025-04-04"],
+});
+```
+
+### OpenAI Responses API
+
+```ts
+import OpenAI from "openai";
+import { Polyvia } from "polyvia";
+
+const polyvia = new Polyvia({ apiKey: "poly_..." });
+const oai = new OpenAI();
+
+const response = await oai.responses.create({
+  model: "gpt-4o",
+  tools: [polyvia.mcp.toOpenAIResponsesTool()],
+  input: "What are my Q4 findings?",
+});
+console.log(response.output_text);
+```
+
+### OpenAI Agents SDK
+
+```ts
+import { Agent, Runner } from "@openai/agents";
+import { MCPServerStreamableHTTP } from "@openai/agents/mcp";
+import { Polyvia } from "polyvia";
+
+const cfg = new Polyvia({ apiKey: "poly_..." }).mcp.toOpenAIMcpServer();
+const server = new MCPServerStreamableHTTP({ url: cfg.url, headers: cfg.headers });
+const agent = new Agent({ name: "Research", mcpServers: [server] });
+const result = await Runner.runSync(agent, "What do my Q4 reports say about revenue?");
+console.log(result.finalOutput);
+```
+
+### Claude Desktop
+
+```ts
+import { Polyvia } from "polyvia";
+
+// Print a snippet to copy-paste into ~/.claude/claude_desktop_config.json
+new Polyvia({ apiKey: "poly_..." }).mcp.printClaudeDesktopSnippet();
+```
+
+---
+
+## Agent Tools (programmatic)
+
+Use `client.tools` to get JSON-schema tool definitions and an executor that calls
+the REST API directly — for frameworks that don't support remote MCP.
+
+All 10 Polyvia tools are available: ingest, status, list/get/update/delete documents,
+list/create/delete groups, and query.
+
+### Anthropic Messages API
+
+```ts
+import Anthropic from "@anthropic-ai/sdk";
+import { Polyvia } from "polyvia";
+
+const client = new Polyvia({ apiKey: "poly_..." });
+const ant = new Anthropic();
+const [tools, callTool] = client.tools.anthropic();
+
+const response = await ant.messages.create({
+  model: "claude-opus-4-5",
+  max_tokens: 2048,
+  messages: [{ role: "user", content: "Summarise my Finance documents." }],
+  tools,
+});
+
+for (const block of response.content) {
+  if (block.type === "tool_use") {
+    const result = await callTool(block.name, block.input as Record<string, unknown>);
+    console.log(result);
+  }
+}
+```
+
+### OpenAI ChatCompletion
+
+```ts
+import OpenAI from "openai";
+import { Polyvia } from "polyvia";
+
+const client = new Polyvia({ apiKey: "poly_..." });
+const oai = new OpenAI();
+const [tools, callTool] = client.tools.openai();
+
+const response = await oai.chat.completions.create({
+  model: "gpt-4o",
+  messages: [{ role: "user", content: "What are my Q4 findings?" }],
+  tools,
+});
+
+for (const tc of response.choices[0]?.message.tool_calls ?? []) {
+  const result = await callTool(tc.function.name, JSON.parse(tc.function.arguments));
+  console.log(result);
+}
+```
+
+---
+
+## Error Handling
+
+```ts
+import {
+  AuthenticationError,  // 401 — bad or missing API key
+  ForbiddenError,        // 403 — document belongs to another user
+  NotFoundError,         // 404 — document, group, or task not found
+  RateLimitError,        // 429 — too many requests
+  IngestionError,        // task finished with status "failed"
+  IngestionTimeout,      // ingest.wait() exceeded its timeout
+} from "polyvia";
+
+try {
+  await client.ingest.wait(taskId, { timeout: 60 });
+} catch (e) {
+  if (e instanceof IngestionError) console.error("Parsing failed:", e.error);
+  else if (e instanceof IngestionTimeout) console.error("Timed out");
+  else if (e instanceof RateLimitError) console.error("Rate limited");
+  else if (e instanceof NotFoundError) console.error("Not found");
+  else if (e instanceof AuthenticationError) console.error("Invalid API key");
+  else throw e;
+}
+```
+
+---
+
+## Links
+
+<CardGroup cols={2}>
+  <Card title="npm" icon="box" href="https://www.npmjs.com/package/polyvia">
+    npm install polyvia
+  </Card>
+  <Card title="GitHub" icon="github" href="https://github.com/polyvia-ai/polyvia-js-sdk">
+    Source code and examples
+  </Card>
+</CardGroup>

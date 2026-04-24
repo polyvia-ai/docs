@@ -85,11 +85,12 @@ answer = httpx.post(
 print(answer)
 ```
 
-### Or use the Python SDK
+### Or use an SDK
 
-The same workflow is much simpler with `pip install polyvia`:
+The same workflow in a few lines with either official SDK:
 
-```python
+<CodeGroup>
+```python Python
 from polyvia import Polyvia
 
 client = Polyvia(api_key="poly_...")
@@ -105,6 +106,24 @@ for item in batch:
 print(client.query("Compare the key findings.", group_id=group_id).answer)
 ```
 
+```ts TypeScript
+import { Polyvia } from "polyvia";
+
+const client = new Polyvia({ apiKey: "poly_..." });
+
+const { group_id } = await client.groups.create("Finance");
+
+const items = await client.ingest.batch(["q3.pdf", "q4.pdf"], {
+  names: ["Q3 Report", "Q4 Report"],
+  groupId: group_id,
+});
+await Promise.all(items.map(item => client.ingest.wait(item.task_id!)));
+
+const answer = await client.query("Compare the key findings.", { groupId: group_id });
+console.log(answer.answer);
+```
+</CodeGroup>
+
 ## Next Steps
 
 <CardGroup cols={2}>
@@ -112,7 +131,10 @@ print(client.query("Compare the key findings.", group_id=group_id).answer)
     Full endpoint documentation with all parameters
   </Card>
   <Card title="Python SDK" icon="python" href="/products/python-sdk">
-    Typed SDK with MCP and agent-tools support
+    Typed Python SDK with MCP and agent-tools support
+  </Card>
+  <Card title="JS / TS SDK" icon="js" href="/products/js-sdk">
+    Typed TypeScript SDK for Node.js and modern JS frameworks
   </Card>
   <Card title="Polyvia MCP Server" icon="plug" href="/products/mcp">
     Connect Polyvia to Claude Desktop and other AI tools

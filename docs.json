@@ -25,6 +25,7 @@
             "pages": [
               "products/api",
               "products/python-sdk",
+              "products/js-sdk",
               "products/mcp",
               "products/skills",
               "products/studio"

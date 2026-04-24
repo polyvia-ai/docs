@@ -26,6 +26,7 @@
               "products/api",
               "products/python-sdk",
               "products/mcp",
+              "products/ide-plugin",
               "products/studio"
             ]
           }

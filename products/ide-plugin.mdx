@@ -1,0 +1,114 @@
+---
+title: "IDE Plugin"
+description: "One command to install Polyvia in Claude Code or Cursor"
+icon: "puzzle-piece"
+---
+
+The Polyvia plugin bundles the MCP server connection and agent skills into a single install command for Claude Code and Cursor. No config files to edit — set your API key and run one command.
+
+<CardGroup cols={2}>
+  <Card title="Claude Code" icon="terminal">
+    `/plugin add polyvia-ai/skills`
+  </Card>
+  <Card title="Cursor" icon="cursor">
+    `/plugin add polyvia-ai/skills`
+  </Card>
+</CardGroup>
+
+## What gets installed
+
+- **MCP server** — Polyvia tools (`ingest`, `query`, `list documents`, `manage groups`, and more) are available immediately in your editor
+- **`polyvia` skill** — agent instructions for using the Python SDK to build document-aware workflows in code
+- **`polyvia-mcp` skill** — agent instructions for connecting other AI clients to the MCP server
+
+## Prerequisites
+
+Set your API key in your shell environment before installing. Get one at **[app.polyvia.ai → Settings → API](https://app.polyvia.ai/settings)**.
+
+```bash
+export POLYVIA_API_KEY=poly_...
+```
+
+Add it to your shell profile (`~/.zshrc` or `~/.bashrc`) to make it permanent.
+
+---
+
+## Install in Claude Code
+
+Run inside any Claude Code session:
+
+```
+/plugin add polyvia-ai/skills
+```
+
+Claude Code will:
+1. Pull the plugin from `github.com/polyvia-ai/skills`
+2. Install both skills into your project
+3. Configure the Polyvia MCP server using `$POLYVIA_API_KEY`
+
+The Polyvia tools appear in Claude Code immediately — no restart required.
+
+---
+
+## Install in Cursor
+
+Run in Cursor's command input:
+
+```
+/plugin add polyvia-ai/skills
+```
+
+The MCP server is configured automatically using `$POLYVIA_API_KEY`.
+
+---
+
+## Available MCP Tools
+
+Once installed, the following tools are available directly in your editor:
+
+| Tool | What it does |
+|------|-------------|
+| `polyvia_ingest_document` | Upload a document from a URL or file |
+| `polyvia_check_ingestion_status` | Poll until a document is indexed |
+| `polyvia_list_documents` | List documents, filter by status or group |
+| `polyvia_get_document` | Get metadata and summary for one document |
+| `polyvia_query` | Ask a question — scoped to document, group, or workspace |
+| `polyvia_list_groups` | List all groups |
+| `polyvia_create_group` | Create a new group |
+| `polyvia_update_document` | Move a document to a different group |
+| `polyvia_delete_document` | Delete a document |
+| `polyvia_delete_group` | Delete a group |
+
+---
+
+## Install skills only
+
+If you're using a different agent client (not Claude Code or Cursor), install just the skills using the `npx skills` CLI:
+
+```bash
+# Both skills
+npx skills add polyvia-ai/skills
+
+# One at a time
+npx skills add polyvia-ai/skills@polyvia
+npx skills add polyvia-ai/skills@polyvia-mcp
+```
+
+Skills are plain markdown instruction files — they work with any MCP-compatible agent.
+
+---
+
+## Manual MCP setup
+
+If you'd rather configure the MCP server by hand (e.g. for Claude Desktop), see the [MCP Integration](/products/mcp) page.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="MCP Integration" icon="plug" href="/products/mcp">
+    Manual MCP setup and all available tools in detail
+  </Card>
+  <Card title="Python SDK" icon="python" href="/products/python-sdk">
+    Build document-aware agents with the Python SDK
+  </Card>
+</CardGroup>

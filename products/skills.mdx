@@ -1,0 +1,79 @@
+---
+title: "Agent Skills"
+description: "Install Polyvia skills into any AI coding agent"
+icon: "puzzle-piece"
+---
+
+[Agent Skills](https://skills.sh) is an open format for giving AI coding agents reusable, shareable capabilities. Installing a Polyvia skill teaches your agent how to ingest documents, query your knowledge base, and manage groups — in any editor or agent framework that supports the format.
+
+## Install
+
+```bash
+npx skills add polyvia-ai/skills
+```
+
+Works with Claude Code, Cursor, GitHub Copilot, Windsurf, and any other agent client that supports the [Agent Skills](https://skills.sh) format. The CLI prompts you to choose which clients to install for.
+
+Install a specific skill:
+
+```bash
+npx skills add polyvia-ai/skills@polyvia      # Python SDK workflows
+npx skills add polyvia-ai/skills@polyvia-mcp  # MCP server setup
+```
+
+---
+
+## Available Skills
+
+### `polyvia`
+
+Teaches your agent to use the Polyvia Python SDK — ingesting documents, polling status, querying across the workspace or scoped to a group, and managing documents and groups.
+
+Activated when you ask your agent to ingest files, search documents, or build document-aware workflows in code.
+
+```bash
+pip install polyvia
+export POLYVIA_API_KEY=poly_...
+```
+
+### `polyvia-mcp`
+
+Teaches your agent to connect any AI client to the Polyvia hosted MCP server (`https://app.polyvia.ai/mcp`) — covering Claude Desktop, the Anthropic beta MCP client, OpenAI Responses API, and the OpenAI Agents SDK.
+
+Activated when you ask your agent to set up an MCP connection or configure a client to use Polyvia tools.
+
+---
+
+## Claude Code & Cursor: plugin install
+
+For Claude Code and Cursor, the Polyvia plugin bundles both skills **plus** the MCP server connection into a single command — no config files to edit:
+
+```
+/plugin add polyvia-ai/skills
+```
+
+Set `POLYVIA_API_KEY=poly_...` in your environment first. The plugin wires up the MCP server automatically using it, making all 10 Polyvia tools available in your editor immediately.
+
+---
+
+## How skills work
+
+Skills are plain Markdown files (`SKILL.md`) with a short frontmatter description. Your agent reads the description to decide when to activate a skill, then uses the body as instructions for how to complete the task.
+
+The Polyvia skills live at [github.com/polyvia-ai/skills](https://github.com/polyvia-ai/skills) and are installed locally into your project at `.agents/skills/` or globally at `~/.agents/skills/`.
+
+---
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="MCP Integration" icon="plug" href="/products/mcp">
+    Manual MCP setup and all available tools
+  </Card>
+  <Card title="Python SDK" icon="python" href="/products/python-sdk">
+    Build document-aware agents in code
+  </Card>
+  <Card title="skills.sh" icon="arrow-up-right-from-square" href="https://skills.sh">
+    Browse the Agent Skills directory
+  </Card>
+</CardGroup>

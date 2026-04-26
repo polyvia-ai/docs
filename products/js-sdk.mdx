@@ -1,10 +1,10 @@
 ---
 title: "JavaScript / TypeScript SDK"
-description: "Official JS/TS SDK for the Polyvia API and MCP server"
+description: "Official JS/TS SDK for the Polyvia API"
 icon: "js"
 ---
 
-The `polyvia` npm package wraps the entire REST API in a fully-typed, ESM/CJS-compatible client and provides first-class support for connecting to the Polyvia MCP server from any AI framework.
+The `polyvia` npm package wraps the entire REST API in a fully-typed, ESM/CJS-compatible client.
 
 ```bash
 npm install polyvia
@@ -127,131 +127,11 @@ console.log(limits.current["remaining_this_minute"]);
 
 ---
 
-## MCP Server
+## MCP & Agent Tools
 
-`client.mcp` returns an `MCPConfig` object with a helper for every major client:
-
-| Method | Use with |
-|--------|----------|
-| `toAnthropicMcpServer()` | `ant.beta.messages.create({ mcp_servers: [...] })` |
-| `toOpenAIResponsesTool()` | `oai.responses.create({ tools: [...] })` |
-| `toOpenAIMcpServer()` | OpenAI Agents SDK `MCPServerStreamableHTTP` |
-| `toClaudeDesktopConfig()` | `~/.claude/claude_desktop_config.json` |
-
-### Anthropic beta MCP client
-
-```ts
-import Anthropic from "@anthropic-ai/sdk";
-import { Polyvia } from "polyvia";
-
-const polyvia = new Polyvia({ apiKey: "poly_..." });
-const ant = new Anthropic();
-
-const response = await ant.beta.messages.create({
-  model: "claude-opus-4-5",
-  max_tokens: 1000,
-  messages: [{ role: "user", content: "What are my Q4 findings?" }],
-  mcp_servers: [polyvia.mcp.toAnthropicMcpServer()],
-  betas: ["mcp-client-2025-04-04"],
-});
-```
-
-### OpenAI Responses API
-
-```ts
-import OpenAI from "openai";
-import { Polyvia } from "polyvia";
-
-const polyvia = new Polyvia({ apiKey: "poly_..." });
-const oai = new OpenAI();
-
-const response = await oai.responses.create({
-  model: "gpt-4o",
-  tools: [polyvia.mcp.toOpenAIResponsesTool()],
-  input: "What are my Q4 findings?",
-});
-console.log(response.output_text);
-```
-
-### OpenAI Agents SDK
-
-```ts
-import { Agent, Runner } from "@openai/agents";
-import { MCPServerStreamableHTTP } from "@openai/agents/mcp";
-import { Polyvia } from "polyvia";
-
-const cfg = new Polyvia({ apiKey: "poly_..." }).mcp.toOpenAIMcpServer();
-const server = new MCPServerStreamableHTTP({ url: cfg.url, headers: cfg.headers });
-const agent = new Agent({ name: "Research", mcpServers: [server] });
-const result = await Runner.runSync(agent, "What do my Q4 reports say about revenue?");
-console.log(result.finalOutput);
-```
-
-### Claude Desktop
-
-```ts
-import { Polyvia } from "polyvia";
-
-// Print a snippet to copy-paste into ~/.claude/claude_desktop_config.json
-new Polyvia({ apiKey: "poly_..." }).mcp.printClaudeDesktopSnippet();
-```
-
----
-
-## Agent Tools (programmatic)
-
-Use `client.tools` to get JSON-schema tool definitions and an executor that calls
-the REST API directly — for frameworks that don't support remote MCP.
-
-All 10 Polyvia tools are available: ingest, status, list/get/update/delete documents,
-list/create/delete groups, and query.
-
-### Anthropic Messages API
-
-```ts
-import Anthropic from "@anthropic-ai/sdk";
-import { Polyvia } from "polyvia";
-
-const client = new Polyvia({ apiKey: "poly_..." });
-const ant = new Anthropic();
-const [tools, callTool] = client.tools.anthropic();
-
-const response = await ant.messages.create({
-  model: "claude-opus-4-5",
-  max_tokens: 2048,
-  messages: [{ role: "user", content: "Summarise my Finance documents." }],
-  tools,
-});
-
-for (const block of response.content) {
-  if (block.type === "tool_use") {
-    const result = await callTool(block.name, block.input as Record<string, unknown>);
-    console.log(result);
-  }
-}
-```
-
-### OpenAI ChatCompletion
-
-```ts
-import OpenAI from "openai";
-import { Polyvia } from "polyvia";
-
-const client = new Polyvia({ apiKey: "poly_..." });
-const oai = new OpenAI();
-const [tools, callTool] = client.tools.openai();
-
-const response = await oai.chat.completions.create({
-  model: "gpt-4o",
-  messages: [{ role: "user", content: "What are my Q4 findings?" }],
-  tools,
-});
-
-for (const tc of response.choices[0]?.message.tool_calls ?? []) {
-  const result = await callTool(tc.function.name, JSON.parse(tc.function.arguments));
-  console.log(result);
-}
-```
+<Card title="MCP Server" icon="plug" href="/products/mcp">
+  Connect Polyvia to Claude, OpenAI, and other AI clients via MCP — including SDK helpers, programmatic agent tools, and Claude Desktop config.
+</Card>
 
 ---
 

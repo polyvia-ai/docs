@@ -23,7 +23,7 @@ pip install "polyvia[langchain]"
 ```python
 from polyvia import Polyvia
 
-client = Polyvia(api_key="poly_...")
+client = Polyvia(api_key="poly_<key>")
 
 # Ingest → wait → query
 result = client.ingest.file("report.pdf", name="Q4 Report")
@@ -34,7 +34,7 @@ print(client.query("What are the key findings?").answer)
 Or set `POLYVIA_API_KEY` in your environment and omit the argument:
 
 ```bash
-export POLYVIA_API_KEY=poly_...
+export POLYVIA_API_KEY=poly_<key>
 ```
 
 ```python
@@ -49,19 +49,19 @@ client = Polyvia()
 
 ```python
 # Single file — accepts a file path, bytes, or file-like object
-result = client.ingest.file("report.pdf", name="Q4 Report", group_id="g_...")
-# → IngestResult(document_id="...", task_id="...", status="pending")
+result = client.ingest.file("report.pdf", name="Q4 Report", group_id="g_<id>")
+# → IngestResult(document_id="<id>", task_id="<id>", status="pending")
 
 # Multiple files
 items = client.ingest.batch(
     ["q3.pdf", "q4.pdf"],
     names=["Q3 Report", "Q4 Report"],
-    group_id="g_...",
+    group_id="g_<id>",
 )
 
 # Check status
 status = client.ingest.status(result.task_id)
-# → IngestionStatus(task_id="...", document_id="...", status="completed")
+# → IngestionStatus(task_id="<id>", document_id="<id>", status="completed")
 
 # Block until done — raises IngestionError on failure, IngestionTimeout on timeout
 client.ingest.wait(result.task_id, poll_interval=5, timeout=300)
@@ -74,13 +74,13 @@ client.ingest.wait(result.task_id, poll_interval=5, timeout=300)
 answer = client.query("What risks are mentioned across all reports?")
 
 # Single document (fastest)
-answer = client.query("Summarise section 3.", document_id="doc_...")
+answer = client.query("Summarise section 3.", document_id="doc_<id>")
 
 # Scoped to a group
-answer = client.query("Key findings?", group_id="g_...")
+answer = client.query("Key findings?", group_id="g_<id>")
 
 # Multiple groups
-answer = client.query("Compare results.", group_ids=["g_...", "g_..."])
+answer = client.query("Compare results.", group_ids=["g_<id>", "g_<id>"])
 
 print(answer.answer)
 ```
@@ -107,18 +107,18 @@ client.groups.delete(group_id)
 
 ```python
 # List — filter by status and/or group
-docs = client.documents.list(status="completed", group_id="g_...")
-docs = client.documents.list(group_ids=["g_...", "g_..."])
+docs = client.documents.list(status="completed", group_id="g_<id>")
+docs = client.documents.list(group_ids=["g_<id>", "g_<id>"])
 
 # Get one
-doc = client.documents.get("doc_...")
+doc = client.documents.get("doc_<id>")
 
 # Move to a different group / remove from group
-client.documents.update("doc_...", group_id="g_other")
-client.documents.update("doc_...", group_id=None)
+client.documents.update("doc_<id>", group_id="g_other")
+client.documents.update("doc_<id>", group_id=None)
 
 # Delete
-client.documents.delete("doc_...")
+client.documents.delete("doc_<id>")
 ```
 
 ### Usage & Rate Limits
@@ -145,7 +145,7 @@ import asyncio
 from polyvia import AsyncPolyvia
 
 async def main():
-    async with AsyncPolyvia(api_key="poly_...") as client:
+    async with AsyncPolyvia(api_key="poly_<key>") as client:
         result = await client.ingest.file("report.pdf")
         await client.ingest.wait(result.task_id)
         answer = await client.query("Key findings?")

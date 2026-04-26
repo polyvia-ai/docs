@@ -93,7 +93,7 @@ The same workflow in a few lines with either official SDK:
 ```python Python
 from polyvia import Polyvia
 
-client = Polyvia(api_key="poly_...")
+client = Polyvia(api_key="poly_<key>")
 
 group_id = client.groups.create("Finance")["group_id"]
 
@@ -109,7 +109,7 @@ print(client.query("Compare the key findings.", group_id=group_id).answer)
 ```ts TypeScript
 import { Polyvia } from "polyvia";
 
-const client = new Polyvia({ apiKey: "poly_..." });
+const client = new Polyvia({ apiKey: "poly_<key>" });
 
 const { group_id } = await client.groups.create("Finance");
 

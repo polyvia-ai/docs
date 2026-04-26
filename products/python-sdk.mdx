@@ -43,11 +43,96 @@ client = Polyvia()
 
 ---
 
-## MCP & Agent Tools
+## REST API
 
-<Card title="MCP Server" icon="plug" href="/products/mcp">
-  Connect Polyvia to Claude, OpenAI, and other AI clients via MCP — including SDK helpers, programmatic agent tools, and LangChain integration.
-</Card>
+### Ingest
+
+```python
+# Single file — accepts a file path, bytes, or file-like object
+result = client.ingest.file("report.pdf", name="Q4 Report", group_id="g_...")
+# → IngestResult(document_id="...", task_id="...", status="pending")
+
+# Multiple files
+items = client.ingest.batch(
+    ["q3.pdf", "q4.pdf"],
+    names=["Q3 Report", "Q4 Report"],
+    group_id="g_...",
+)
+
+# Check status
+status = client.ingest.status(result.task_id)
+# → IngestionStatus(task_id="...", document_id="...", status="completed")
+
+# Block until done — raises IngestionError on failure, IngestionTimeout on timeout
+client.ingest.wait(result.task_id, poll_interval=5, timeout=300)
+```
+
+### Query
+
+```python
+# All completed documents
+answer = client.query("What risks are mentioned across all reports?")
+
+# Single document (fastest)
+answer = client.query("Summarise section 3.", document_id="doc_...")
+
+# Scoped to a group
+answer = client.query("Key findings?", group_id="g_...")
+
+# Multiple groups
+answer = client.query("Compare results.", group_ids=["g_...", "g_..."])
+
+print(answer.answer)
+```
+
+### Groups
+
+```python
+# Create
+group = client.groups.create("Finance")
+group_id = group.group_id
+
+# List
+groups = client.groups.list()
+
+# Delete all documents in a group, then the group itself
+client.groups.delete(group_id, delete_documents=True)
+
+# Or separately
+client.groups.delete_documents(group_id)
+client.groups.delete(group_id)
+```
+
+### Documents
+
+```python
+# List — filter by status and/or group
+docs = client.documents.list(status="completed", group_id="g_...")
+docs = client.documents.list(group_ids=["g_...", "g_..."])
+
+# Get one
+doc = client.documents.get("doc_...")
+
+# Move to a different group / remove from group
+client.documents.update("doc_...", group_id="g_other")
+client.documents.update("doc_...", group_id=None)
+
+# Delete
+client.documents.delete("doc_...")
+```
+
+### Usage & Rate Limits
+
+```python
+usage = client.usage()
+print(usage.usage.requests.period)     # requests this calendar month
+print(usage.usage.documents_stored)    # live document count
+
+limits = client.rate_limits()
+print(limits.limits["requests_per_minute"])
+print(limits.current["remaining_this_minute"])
+print(limits.resets_at.month)          # ISO timestamp of next monthly reset
+```
 
 ---
 
@@ -84,7 +169,7 @@ from polyvia import (
 )
 
 try:
-    done = client.ingest.wait(task_id, timeout=60)
+    client.ingest.wait(task_id, timeout=60)
 except IngestionError as e:
     print(f"Parsing failed: {e.error}")
 except IngestionTimeout:
@@ -96,6 +181,14 @@ except NotFoundError:
 except AuthenticationError:
     print("Invalid API key")
 ```
+
+---
+
+## MCP & Agent Tools
+
+<Card title="MCP Server" icon="plug" href="/products/mcp">
+  Connect Polyvia to Claude, OpenAI, and other AI clients via MCP — including SDK helpers, programmatic agent tools, and LangChain integration.
+</Card>
 
 ---
 

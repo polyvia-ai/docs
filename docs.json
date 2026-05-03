@@ -28,7 +28,8 @@
               "products/js-sdk",
               "products/mcp",
               "products/skills",
-              "products/studio"
+              "products/studio",
+              "products/integrations"
             ]
           }
         ]

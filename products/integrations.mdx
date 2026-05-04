@@ -6,14 +6,37 @@ icon: "plug"
 
 Polyvia Studio can import documents from the platforms your team already uses. Imported files go through the same parsing and indexing pipeline as drag-and-drop uploads — once an import finishes, the document is searchable, citable, and visible on the Documents page.
 
-Some integrations work out of the box (one click and a sign-in popup). Others — the ones that don't have a hosted file picker — need a one-time **Connect** step in **Settings → Integrations** before the import button appears.
+Some integrations work out of the box (one click and a sign-in popup). Others — the ones that don't have a hosted file picker — need a one-time **Connect** step before the import button appears.
 
-<CardGroup cols={2}>
-  <Card title="Click-to-import" icon="cloud-arrow-up">
-    Google Drive, Dropbox, OneDrive / SharePoint
+## Click-to-import
+
+These platforms use a hosted picker popup. No setup in Polyvia, no stored credentials.
+
+<CardGroup cols={3}>
+  <Card title="Google Drive" icon="google-drive" href="/products/integrations/google-drive">
+    Including native Docs, Sheets, and Slides
   </Card>
-  <Card title="Connect once, then import" icon="plug">
-    Notion, Amazon S3, Slack
+  <Card title="Dropbox" icon="dropbox" href="/products/integrations/dropbox">
+    Multi-select via the Dropbox Chooser
+  </Card>
+  <Card title="OneDrive & SharePoint" icon="microsoft" href="/products/integrations/onedrive">
+    Personal OneDrive and SharePoint sites
+  </Card>
+</CardGroup>
+
+## Connect once, then import
+
+These platforms need a quick authorization step the first time you use them.
+
+<CardGroup cols={3}>
+  <Card title="Notion" icon="notion" href="/products/integrations/notion">
+    Pick which workspace pages to share
+  </Card>
+  <Card title="Amazon S3" icon="aws" href="/products/integrations/amazon-s3">
+    Read-only IAM credentials for one bucket
+  </Card>
+  <Card title="Slack" icon="slack" href="/products/integrations/slack">
+    Import files visible to your account
   </Card>
 </CardGroup>
 
@@ -30,156 +53,8 @@ All integrations import the same formats Polyvia parses elsewhere:
 
 Files outside this list import successfully but won't be indexed for search.
 
----
-
-## Google Drive
-
-<Steps>
-  <Step title="Click Import from Google Drive">
-    On the Documents page, click the **Import from Google Drive** button.
-  </Step>
-  <Step title="Sign in to Google">
-    A Google sign-in popup opens. Pick the account whose files you want to import.
-  </Step>
-  <Step title="Pick a file">
-    The Google Picker opens. Choose any supported file — including native Google Docs, Sheets, and Slides (Polyvia auto-exports them to Word, Excel, and PowerPoint format).
-  </Step>
-</Steps>
-
-No setup is required in Polyvia. Each user signs in to their own Google account on first import.
-
----
-
-## Dropbox
-
-<Steps>
-  <Step title="Click Import from Dropbox">
-    On the Documents page, click the **Import from Dropbox** button.
-  </Step>
-  <Step title="Sign in to Dropbox">
-    The Dropbox Chooser popup opens and walks you through sign-in if needed.
-  </Step>
-  <Step title="Pick one or more files">
-    Select files in the Chooser and confirm. Multiple files can be selected at once.
-  </Step>
-</Steps>
-
-No setup required. Each user authenticates with their own Dropbox account in the Chooser popup.
-
----
-
-## OneDrive & SharePoint
-
-<Steps>
-  <Step title="Click Import from OneDrive">
-    On the Documents page, click the **Import from OneDrive** button.
-  </Step>
-  <Step title="Sign in with Microsoft">
-    The Microsoft picker opens. Sign in with the account that has access to the files (personal OneDrive or a SharePoint site).
-  </Step>
-  <Step title="Pick one or more files">
-    Browse OneDrive folders or SharePoint document libraries and select files.
-  </Step>
-</Steps>
-
-The same picker covers personal OneDrive and SharePoint sites your account has access to.
-
----
-
-## Notion
-
-Notion needs a one-time **Connect** step because Polyvia has to know which pages you want it to read.
-
-<Steps>
-  <Step title="Open Settings → Integrations">
-    From the user menu, go to **Settings → Integrations** and find the Notion row.
-  </Step>
-  <Step title="Click Connect">
-    You'll be redirected to Notion to authorize Polyvia.
-  </Step>
-  <Step title="Pick which pages to grant access to">
-    On the Notion authorization screen, **Select pages** and pick the workspace pages (and their child pages) you want Polyvia to be able to import. Submit.
-  </Step>
-  <Step title="Import a page">
-    Back in Studio, click **Import from Notion** on the Documents page. The dialog lists the pages you granted access to — click one to import. The page is converted to markdown (preserving headings, lists, code, callouts, images, tables, and inline formatting) and stored as a document.
-  </Step>
-</Steps>
-
-<Tip>
-  To grant access to additional pages later, click **Connect** again and select more pages — or share pages with the Polyvia integration directly inside Notion (**Share → Connections → Polyvia**).
-</Tip>
-
-Each Notion page becomes one document in Polyvia.
-
----
-
-## Amazon S3
-
-S3 needs a one-time **Connect** step where you provide AWS credentials with read access to a single bucket.
-
-<Steps>
-  <Step title="Create an IAM user with read access">
-    In the AWS console, create an IAM user (or role) with this least-privilege policy. Replace `YOUR_BUCKET` with your bucket name:
-
-    ```json
-    {
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-          "Effect": "Allow",
-          "Action": ["s3:ListBucket"],
-          "Resource": ["arn:aws:s3:::YOUR_BUCKET"]
-        },
-        {
-          "Effect": "Allow",
-          "Action": ["s3:GetObject"],
-          "Resource": ["arn:aws:s3:::YOUR_BUCKET/*"]
-        }
-      ]
-    }
-    ```
-  </Step>
-  <Step title="Generate an access key">
-    Open the IAM user → **Security credentials** → **Create access key**. Choose **Application running outside AWS** and copy the access key ID and secret (the secret is only shown once).
-  </Step>
-  <Step title="Open Settings → Integrations and click Connect">
-    On the Amazon S3 row, click **Connect**. Paste the access key ID, secret access key, region (e.g. `us-east-1`), and bucket name. Save.
-  </Step>
-  <Step title="Browse and import">
-    On the Documents page, click **Import from S3**. The dialog browses the bucket using the standard `/` delimiter — click a folder to descend into, or click a file to import.
-  </Step>
-</Steps>
-
-<Warning>
-  Use a dedicated read-only IAM user. Never paste a root access key. The region must match the bucket — using the wrong region returns a redirect error.
-</Warning>
-
----
-
-## Slack
-
-Slack needs a one-time **Connect** step that authorizes Polyvia to see the files visible to your Slack account.
-
-<Steps>
-  <Step title="Open Settings → Integrations">
-    From the user menu, go to **Settings → Integrations** and find the Slack row.
-  </Step>
-  <Step title="Click Connect">
-    You'll be redirected to Slack to authorize Polyvia. Pick the workspace and approve the requested scopes (`files:read` plus channel-read scopes so Slack returns channel context).
-  </Step>
-  <Step title="Import a file">
-    Back in Studio, click **Import from Slack** on the Documents page. The dialog lists the most recent files visible to your Slack account, with a name filter. Click a file to import.
-  </Step>
-</Steps>
-
-<Note>
-  Polyvia uses a **user token**, so you'll see your own files and channels — not a separate bot's files. Revoking the Polyvia app from your Slack workspace immediately stops new imports; previously-imported files stay in Polyvia.
-</Note>
-
----
-
 ## Disconnecting
 
-For Notion, S3, and Slack, the Settings → Integrations row shows a **Disconnect** button once connected. Disconnecting removes Polyvia's stored credentials for that platform; previously imported documents are not affected.
+For Notion, Amazon S3, and Slack, open **Settings → Integrations** in Polyvia and click **Disconnect** on the matching row. Polyvia's stored credentials for that platform are removed; previously imported documents are not affected.
 
-For Google Drive, Dropbox, and OneDrive, there's no stored credential — each click of the Import button uses the platform's own session, so you can sign out by clearing the browser session or signing out within the picker popup.
+For Google Drive, Dropbox, and OneDrive, there's no stored credential — each Import click uses the platform's own session. Use **Switch account** in **Settings → Integrations** (Dropbox/OneDrive) to sign out at the provider, or sign out within the picker popup itself.

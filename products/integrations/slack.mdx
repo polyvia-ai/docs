@@ -1,0 +1,24 @@
+---
+title: "Slack"
+description: "Connect Slack and import files visible to your account"
+icon: "slack"
+---
+
+Slack needs a one-time **Connect** step that authorizes Polyvia to see the files visible to your Slack account.
+
+<Steps>
+  <Step title="Click Import from Slack">
+    On the Documents page, open the Import dropdown and click **Slack**. If you haven't connected yet, you'll be redirected to Slack to authorize Polyvia. Pick the workspace and approve the requested scopes (`files:read` plus channel-read scopes so Slack returns channel context).
+  </Step>
+  <Step title="Import a file">
+    You'll land back on the Documents page with the Slack picker open. The dialog lists the most recent files visible to your Slack account, with a name filter. Click a file to import.
+  </Step>
+</Steps>
+
+<Note>
+  Polyvia uses a **user token**, so you'll see your own files and channels — not a separate bot's files. Revoking the Polyvia app from your Slack workspace immediately stops new imports; previously-imported files stay in Polyvia.
+</Note>
+
+## Disconnecting
+
+Open **Settings → Integrations** and click **Disconnect** on the Slack row. Previously imported files remain in Polyvia.

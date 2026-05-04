@@ -29,7 +29,18 @@
               "products/mcp",
               "products/skills",
               "products/studio",
-              "products/integrations"
+              {
+                "group": "Integrations",
+                "pages": [
+                  "products/integrations",
+                  "products/integrations/google-drive",
+                  "products/integrations/dropbox",
+                  "products/integrations/onedrive",
+                  "products/integrations/notion",
+                  "products/integrations/amazon-s3",
+                  "products/integrations/slack"
+                ]
+              }
             ]
           }
         ]

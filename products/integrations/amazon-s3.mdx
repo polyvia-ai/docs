@@ -1,0 +1,52 @@
+---
+title: "Amazon S3"
+description: "Connect an S3 bucket with read-only IAM credentials"
+icon: "aws"
+---
+
+S3 needs a one-time **Connect** step where you provide AWS credentials with read access to a single bucket.
+
+<Steps>
+  <Step title="Create an IAM user with read access">
+    In the AWS console, go to **IAM → Users → Create user** and name it (e.g. `polyvia-s3-reader`). Skip console access. Attach a policy with the permissions below — replace `YOUR_BUCKET` with your bucket name:
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": ["s3:ListBucket"],
+          "Resource": ["arn:aws:s3:::YOUR_BUCKET"]
+        },
+        {
+          "Effect": "Allow",
+          "Action": ["s3:GetObject"],
+          "Resource": ["arn:aws:s3:::YOUR_BUCKET/*"]
+        }
+      ]
+    }
+    ```
+  </Step>
+  <Step title="Generate an access key">
+    Open the IAM user → **Security credentials** → **Create access key**. Choose **Application running outside AWS** and copy the access key ID and secret (the secret is only shown once).
+  </Step>
+  <Step title="Connect in Polyvia">
+    On the Documents page, open the Import dropdown and click **Amazon S3**. Paste the access key ID, secret access key, region (e.g. `us-east-1`), and bucket name. Save.
+  </Step>
+  <Step title="Browse and import">
+    The picker opens automatically after Save. Browse the bucket using the standard `/` delimiter — click a folder to descend into, or click a file to import.
+  </Step>
+</Steps>
+
+<Warning>
+  Use a dedicated read-only IAM user. Never paste a root access key. The region must match the bucket — using the wrong region returns a redirect error.
+</Warning>
+
+<Note>
+  Credentials are stored in your browser's `localStorage` (key: `s3_integration_config`). They aren't synced to other browsers and only leave your environment over TLS to Polyvia when you list or import objects.
+</Note>
+
+## Disconnecting
+
+Open **Settings → Integrations** and click **Disconnect** on the Amazon S3 row. This clears the locally-stored credentials. Previously imported objects remain in Polyvia.

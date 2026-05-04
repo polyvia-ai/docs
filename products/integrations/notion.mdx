@@ -1,0 +1,29 @@
+---
+title: "Notion"
+description: "Connect a Notion workspace and import pages as documents"
+icon: "notion"
+---
+
+Notion needs a one-time **Connect** step because Polyvia has to know which pages you want it to read.
+
+<Steps>
+  <Step title="Click Import from Notion">
+    On the Documents page, open the Import dropdown and click **Notion**. If you haven't connected yet, you'll be redirected to Notion to authorize Polyvia.
+  </Step>
+  <Step title="Pick which pages to grant access to">
+    On the Notion authorization screen, **Select pages** and pick the workspace pages (and their child pages) you want Polyvia to be able to import. Submit.
+  </Step>
+  <Step title="Import a page">
+    You'll land back on the Documents page with the Notion picker open. The dialog lists the pages you granted access to — click one to import. The page is converted to markdown (preserving headings, lists, code, callouts, images, tables, and inline formatting) and stored as a document.
+  </Step>
+</Steps>
+
+<Tip>
+  To grant access to additional pages later, open **Settings → Integrations**, disconnect, and reconnect — or share pages with the Polyvia integration directly inside Notion (**Share → Connections → Polyvia**).
+</Tip>
+
+Each Notion page becomes one document in Polyvia.
+
+## Disconnecting
+
+Open **Settings → Integrations** and click **Disconnect** on the Notion row. Previously imported pages remain in Polyvia.

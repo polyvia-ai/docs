@@ -6,11 +6,7 @@ icon: "plug"
 
 Polyvia Studio can import documents from the platforms your team already uses. Imported files go through the same parsing and indexing pipeline as drag-and-drop uploads — once an import finishes, the document is searchable, citable, and visible on the Documents page.
 
-Some integrations work out of the box (one click and a sign-in popup). Others — the ones that don't have a hosted file picker — need a one-time **Connect** step before the import button appears.
-
-## Click-to-import
-
-These platforms use a hosted picker popup. No setup in Polyvia, no stored credentials.
+Pick a platform below for the full setup walkthrough.
 
 <CardGroup cols={3}>
   <Card title="Google Drive" icon="google-drive" href="/products/integrations/google-drive">
@@ -22,13 +18,6 @@ These platforms use a hosted picker popup. No setup in Polyvia, no stored creden
   <Card title="OneDrive & SharePoint" icon="microsoft" href="/products/integrations/onedrive">
     Personal OneDrive and SharePoint sites
   </Card>
-</CardGroup>
-
-## Connect once, then import
-
-These platforms need a quick authorization step the first time you use them.
-
-<CardGroup cols={3}>
   <Card title="Notion" icon="notion" href="/products/integrations/notion">
     Pick which workspace pages to share
   </Card>
@@ -52,9 +41,3 @@ All integrations import the same formats Polyvia parses elsewhere:
 - **Markdown / text** (`.md`, `.txt`)
 
 Files outside this list import successfully but won't be indexed for search.
-
-## Disconnecting
-
-For Notion, Amazon S3, and Slack, open **Settings → Integrations** in Polyvia and click **Disconnect** on the matching row. Polyvia's stored credentials for that platform are removed; previously imported documents are not affected.
-
-For Google Drive, Dropbox, and OneDrive, there's no stored credential — each Import click uses the platform's own session. Use **Switch account** in **Settings → Integrations** (Dropbox/OneDrive) to sign out at the provider, or sign out within the picker popup itself.

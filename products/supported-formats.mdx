@@ -1,0 +1,111 @@
+---
+title: "Supported Formats"
+description: "Document, image, and audio formats Polyvia can ingest and index"
+icon: "file-lines"
+---
+
+Polyvia ingests text, visual, and audio source material into the same unified knowledge graph. You don't need to pre-classify or pre-convert your files — drop in whatever your team produces and Polyvia routes each file through the right parser automatically.
+
+## Overview
+
+<CardGroup cols={4}>
+  <Card title="Documents" icon="file-pdf">
+    PDF, DOCX, PPTX
+  </Card>
+  <Card title="Text" icon="file-lines">
+    TXT, Markdown
+  </Card>
+  <Card title="Images" icon="image">
+    PNG, JPG, screenshots, scans
+  </Card>
+  <Card title="Audio" icon="microphone">
+    WAV, MP3, M4A, and more
+  </Card>
+</CardGroup>
+
+## Documents
+
+<AccordionGroup>
+  <Accordion title="PDF" icon="file-pdf">
+    Reports, filings, contracts, research papers, scanned books. Polyvia extracts text, tables, charts, and figures — preserving page numbers and layout for citations.
+
+    **Extensions:** `.pdf`
+  </Accordion>
+
+  <Accordion title="Word Documents" icon="file-word">
+    Memos, proposals, internal docs. Headings, lists, and tables are preserved so structure-aware queries (e.g. "what does section 3.2 say about…") work correctly.
+
+    **Extensions:** `.docx`, `.doc`
+  </Accordion>
+
+  <Accordion title="Slides & Decks" icon="presentation-screen">
+    Pitch decks, board decks, training material. Slide order is preserved and per-slide visuals (charts, images, diagrams) are extracted alongside speaker notes.
+
+    **Extensions:** `.pptx`, `.ppt`
+  </Accordion>
+</AccordionGroup>
+
+## Text
+
+<AccordionGroup>
+  <Accordion title="Plain Text" icon="file-lines">
+    Logs, transcripts, notes, raw exports. Indexed line-by-line with no formatting loss.
+
+    **Extensions:** `.txt`
+  </Accordion>
+
+  <Accordion title="Markdown" icon="markdown">
+    READMEs, wikis, internal docs, AI-generated reports. Headings, code blocks, and lists are parsed natively, so structural citations point to the right section.
+
+    **Extensions:** `.md`
+  </Accordion>
+</AccordionGroup>
+
+## Images
+
+<AccordionGroup>
+  <Accordion title="Photos & Renders" icon="image">
+    Product photography, architecture diagrams, whiteboards, screenshots, scanned receipts. Polyvia runs visual understanding to extract text, structure, and entities — citations point to the image with bounding boxes when applicable.
+
+    **Extensions:** `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.bmp`
+  </Accordion>
+</AccordionGroup>
+
+## Audio
+
+<AccordionGroup>
+  <Accordion title="Recordings & Calls" icon="microphone">
+    Sales calls, interviews, podcasts, meeting recordings. Polyvia transcribes with timestamps and speaker turns — citations link directly to the utterance, and queries can return clickable timestamps that seek the player to the cited moment.
+
+    **Extensions:** `.wav`, `.mp3`, `.m4a`
+  </Accordion>
+</AccordionGroup>
+
+## How ingestion works
+
+Regardless of format, every file flows through the same pipeline:
+
+1. **Parse** — format-specific parser extracts raw content (text, page layout, frames, transcript).
+2. **Extract** — VLM and LLM passes pull out facts, tables, charts, and entities.
+3. **Index** — facts are linked into the ontology graph with source provenance (document, page, bounding box, or timestamp).
+4. **Query** — agents can search across all formats in the same call; citations point back to the exact source location.
+
+## Uploading
+
+You can ingest any supported format through any of our interfaces:
+
+<CardGroup cols={3}>
+  <Card title="Polyvia Studio" icon="browser" href="/products/studio">
+    Drag-and-drop upload — no code required.
+  </Card>
+  <Card title="REST API" icon="terminal" href="/api-reference/endpoint/ingest">
+    Single or batch upload via `/api/v1/ingest`.
+  </Card>
+  <Card title="SDKs" icon="code" href="/products/python-sdk">
+    Python and TypeScript SDKs with batch helpers.
+  </Card>
+</CardGroup>
+
+<Note>
+  **Need a format we don't list?** Video, HTML, and email ingestion are on the roadmap. Email [senyao@polyvia.ai](mailto:senyao@polyvia.ai) and tell us what you'd like to throw at Polyvia.
+</Note>

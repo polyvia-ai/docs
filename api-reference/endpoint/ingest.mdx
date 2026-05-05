@@ -18,7 +18,7 @@ Upload a single file for parsing and indexing.
 `multipart/form-data`
 
 <ParamField body="file" type="file" required>
-  The document to upload. Supported formats: PDF, DOCX, PPTX, XLSX, TXT, MD, and more.
+  The document to upload. See [Supported File Formats](#supported-file-formats) below for the full list — covers PDFs, Office files, text, images, and audio.
 </ParamField>
 
 <ParamField body="name" type="string">
@@ -235,8 +235,15 @@ done = client.ingest.wait(task_id, poll_interval=5, timeout=300)
 
 ## Supported File Formats
 
-PDF, DOCX, PPTX, XLSX, TXT, MD, and other common document formats.
+| Category | Extensions |
+|----------|------------|
+| Documents | `.pdf`, `.docx`, `.pptx` |
+| Text | `.txt`, `.md` (Markdown) |
+| Images | `.png`, `.jpg` / `.jpeg`, `.webp`, `.gif` |
+| Audio | `.wav`, `.mp3`, `.m4a` |
+
+See [Supported Formats](/products/supported-formats) for parser-by-parser details on what gets extracted from each file type.
 
 <Tip>
-Documents are typically processed within 1–2 minutes. Poll the status endpoint every few seconds to check progress.
+Documents are typically processed within 1–2 minutes. Audio files take longer — roughly real-time playback for transcription. Poll the status endpoint every few seconds to check progress.
 </Tip>

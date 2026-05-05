@@ -13,6 +13,10 @@ Return request and document counts for the current API key, both for the current
 
 `GET /api/v1/usage`
 
+<Note>
+Counters in this response have two scopes. **Per-key:** `requests`, `ingests`, `queries` reflect just what *this* API key has done. **Per-workspace:** `pages`, `audio_seconds`, and `documents_stored` reflect the workspace the key belongs to (across all keys and in-app activity).
+</Note>
+
 ### Response
 
 <ResponseField name="usage" type="object">
@@ -35,6 +39,18 @@ Return request and document counts for the current API key, both for the current
         <ResponseField name="total" type="integer">All-time query count</ResponseField>
       </Expandable>
     </ResponseField>
+    <ResponseField name="pages" type="object">
+      <Expandable title="Pages-processed counters">
+        <ResponseField name="period" type="integer">Pages processed this calendar month (workspace-wide)</ResponseField>
+        <ResponseField name="total" type="integer">All-time pages processed (workspace-wide)</ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="audio_seconds" type="object">
+      <Expandable title="Audio-seconds counters">
+        <ResponseField name="period" type="integer">Seconds of audio processed this calendar month (workspace-wide)</ResponseField>
+        <ResponseField name="total" type="integer">All-time audio seconds processed (workspace-wide)</ResponseField>
+      </Expandable>
+    </ResponseField>
     <ResponseField name="documents_stored" type="integer">
       Number of documents currently in your workspace
     </ResponseField>
@@ -55,9 +71,10 @@ from polyvia import Polyvia
 client = Polyvia(api_key="poly_...")
 
 usage = client.usage()
-print(usage.usage.requests.period)    # requests this month
-print(usage.usage.requests.total)     # all-time
-print(usage.usage.documents_stored)   # live document count
+print(usage.usage.requests.period)              # requests this month (per key)
+print(usage.usage.pages.period)                 # pages this month (workspace)
+print(usage.usage.audio_seconds.period / 60)    # minutes of audio this month
+print(usage.usage.documents_stored)             # live document count
 ```
 </CodeGroup>
 
@@ -68,6 +85,8 @@ print(usage.usage.documents_stored)   # live document count
     "requests":        { "period": 142,  "total": 3801  },
     "ingests":         { "period": 12,   "total": 204   },
     "queries":         { "period": 130,  "total": 3597  },
+    "pages":           { "period": 318,  "total": 5421  },
+    "audio_seconds":   { "period": 1840, "total": 34920 },
     "documents_stored": 47
   }
 }

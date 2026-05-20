@@ -9,6 +9,16 @@ The Ingest endpoints handle document uploads and status polling. Parsing runs as
 
 Upload a single file for parsing and indexing.
 
+<Note>
+  **Size limit.** `POST /api/v1/ingest` and `POST /api/v1/ingest/batch`
+  proxy the file bytes through the API server, which is subject to a
+  **4.5 MB total request-body limit**. For larger files — or batches that
+  exceed that limit — use the [Direct Upload for Large Files](#direct-upload-for-large-files)
+  flow further down this page. The official SDKs use the direct-upload
+  flow automatically, so `client.ingest.file(...)` and
+  `client.ingest.batch(...)` have no practical file-size cap.
+</Note>
+
 ### Endpoint
 
 `POST /api/v1/ingest`
@@ -148,6 +158,137 @@ for item in batch:
 }
 ```
 </ResponseExample>
+
+---
+
+## Direct Upload for Large Files
+
+The multipart endpoints above proxy the file bytes through the API server,
+which is subject to a **4.5 MB total request-body limit**. To upload larger
+files — or batches that exceed that limit — use the three-step direct-upload
+flow. Each file's bytes go straight from your client to Polyvia's storage
+backend, bypassing the API server entirely.
+
+<Tip>
+  The official Python and JavaScript SDKs use this flow automatically, so
+  `client.ingest.file(...)` and `client.ingest.batch(...)` work for any
+  file size without any extra code. The steps below are only needed if
+  you're calling the REST API directly (e.g. from curl or a language we
+  don't ship an SDK for).
+</Tip>
+
+### Step 1 — Get an upload URL
+
+`POST /api/v1/ingest/upload-url`
+
+No request body.
+
+<ResponseField name="upload_url" type="string" required>
+  Short-lived signed URL for the storage backend. Expires in ~1 hour and
+  is single-use.
+</ResponseField>
+
+<ResponseExample>
+```json Response
+{ "upload_url": "https://<your-deployment>.convex.cloud/api/storage/upload?token=..." }
+```
+</ResponseExample>
+
+### Step 2 — PUT the file to that URL
+
+Stream the raw file bytes to the returned `upload_url`. Set `Content-Type`
+to the file's MIME type.
+
+<Warning>
+  Do **not** include your Polyvia `Authorization: Bearer poly_<key>`
+  header on this request. The URL is already signed, and forwarding the
+  key to a different origin would leak it unnecessarily.
+</Warning>
+
+Storage responds with the new object's identifier:
+
+```json
+{ "storageId": "kg2abc...", "size": 12345678 }
+```
+
+### Step 3 — Finalize the upload
+
+`POST /api/v1/ingest/finalize`
+
+`application/json`
+
+<ParamField body="storage_id" type="string" required>
+  The `storageId` returned by storage in Step 2.
+</ParamField>
+
+<ParamField body="file_type" type="string" required>
+  MIME type of the uploaded file.
+</ParamField>
+
+<ParamField body="name" type="string">
+  Display name. Defaults to "Untitled" if omitted.
+</ParamField>
+
+<ParamField body="group_id" type="string">
+  Assign the document to a group on creation.
+</ParamField>
+
+Returns the same `{document_id, task_id, status}` shape as `POST /api/v1/ingest`.
+
+### Example
+
+<CodeGroup>
+```bash cURL + jq
+# 1. Get a signed upload URL
+UPLOAD_URL=$(curl -s -X POST https://app.polyvia.ai/api/v1/ingest/upload-url \
+  -H "Authorization: Bearer poly_<your-key>" | jq -r '.upload_url')
+
+# 2. PUT the file bytes directly to storage
+STORAGE_ID=$(curl -s -X PUT "$UPLOAD_URL" \
+  -H "Content-Type: application/pdf" \
+  --data-binary @big-report.pdf | jq -r '.storageId')
+
+# 3. Finalize — register the document and queue parsing
+curl -X POST https://app.polyvia.ai/api/v1/ingest/finalize \
+  -H "Authorization: Bearer poly_<your-key>" \
+  -H "Content-Type: application/json" \
+  -d "{\"storage_id\": \"$STORAGE_ID\", \"file_type\": \"application/pdf\", \"name\": \"Big Report\", \"group_id\": \"g_...\"}"
+```
+
+```python httpx
+import httpx
+
+API_KEY = "poly_<your-key>"
+BASE    = "https://app.polyvia.ai"
+HEADERS = {"Authorization": f"Bearer {API_KEY}"}
+
+# 1. Get an upload URL
+upload_url = httpx.post(
+    f"{BASE}/api/v1/ingest/upload-url", headers=HEADERS
+).json()["upload_url"]
+
+# 2. PUT the file directly to storage (no auth header here!)
+with open("big-report.pdf", "rb") as f:
+    storage_id = httpx.put(
+        upload_url,
+        content=f.read(),
+        headers={"Content-Type": "application/pdf"},
+        timeout=300,
+    ).json()["storageId"]
+
+# 3. Finalize
+resp = httpx.post(
+    f"{BASE}/api/v1/ingest/finalize",
+    headers=HEADERS,
+    json={
+        "storage_id": storage_id,
+        "file_type":  "application/pdf",
+        "name":       "Big Report",
+    },
+).json()
+print(resp)  # {"document_id": "...", "task_id": "...", "status": "pending"}
+```
+</CodeGroup>
 
 ---
 

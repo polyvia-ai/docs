@@ -47,6 +47,13 @@ client = Polyvia()
 
 ### Ingest
 
+The SDK uploads file bytes directly to Polyvia's storage backend (the API
+server is not in the upload path), so there is no practical file-size cap
+from the SDK side and large batches don't fail on a request-body limit.
+Each file in a batch is uploaded and finalized independently — a failure
+on one file is captured in `BatchIngestItem.error` and does not affect
+the others.
+
 ```python
 # Single file — accepts a file path, bytes, or file-like object
 result = client.ingest.file("report.pdf", name="Q4 Report", group_id="g_<id>")

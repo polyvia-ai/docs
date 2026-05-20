@@ -44,6 +44,13 @@ const client = new Polyvia();
 
 ### Ingest
 
+The SDK uploads file bytes directly to Polyvia's storage backend (the API
+server is not in the upload path), so there is no practical file-size cap
+from the SDK side and large batches don't fail on a request-body limit.
+Each file in a batch is uploaded and finalized independently — a failure
+on one file is captured in `BatchIngestItem.error` and does not affect
+the others.
+
 ```ts
 // Single file — accepts a file path, Buffer, or Blob
 const result = await client.ingest.file("report.pdf", {

@@ -3,179 +3,24 @@ title: "Ingest"
 description: "Upload documents and track ingestion status"
 ---
 
-The Ingest endpoints handle document uploads and status polling. Parsing runs asynchronously — upload returns a `task_id` immediately, which you then poll until ingestion completes.
-
-## Upload Document
-
-Upload a single file for parsing and indexing.
-
-<Note>
-  **Size limit.** `POST /api/v1/ingest` and `POST /api/v1/ingest/batch`
-  proxy the file bytes through the API server, which is subject to a
-  **4.5 MB total request-body limit**. For larger files — or batches that
-  exceed that limit — use the [Direct Upload for Large Files](#direct-upload-for-large-files)
-  flow further down this page. The official SDKs use the direct-upload
-  flow automatically, so `client.ingest.file(...)` and
-  `client.ingest.batch(...)` have no practical file-size cap.
-</Note>
-
-### Endpoint
-
-`POST /api/v1/ingest`
-
-### Request Body
-
-`multipart/form-data`
-
-<ParamField body="file" type="file" required>
-  The document to upload. See [Supported File Formats](#supported-file-formats) below for the full list — covers PDFs, Office files, text, images, and audio.
-</ParamField>
-
-<ParamField body="name" type="string">
-  Display name in your workspace. Defaults to the filename if omitted.
-</ParamField>
-
-<ParamField body="group_id" type="string">
-  Assign the document to a group on upload.
-</ParamField>
-
-### Response
-
-<ResponseField name="document_id" type="string" required>
-  Unique identifier for the uploaded document
-</ResponseField>
-
-<ResponseField name="task_id" type="string" required>
-  Ingestion task identifier — use this to poll for status
-</ResponseField>
-
-<ResponseField name="status" type="string">
-  Initial status: always `pending`
-</ResponseField>
-
-### Example
-
-```bash cURL
-curl -X POST https://app.polyvia.ai/api/v1/ingest \
-  -H "Authorization: Bearer poly_<your-key>" \
-  -F "file=@/path/to/report.pdf" \
-  -F "name=Q4 2024 Report" \
-  -F "group_id=g_..."
-```
-
-<ResponseExample>
-```json Success
-{
-  "document_id": "k57abc123...",
-  "task_id":     "3f2e1d0c-...",
-  "status":      "pending"
-}
-```
-</ResponseExample>
-
----
-
-## Upload Multiple Documents
-
-Upload several files in a single request. Each file is queued as an independent ingestion task.
-
-### Endpoint
-
-`POST /api/v1/ingest/batch`
-
-### Request Body
-
-`multipart/form-data`
-
-<ParamField body="files" type="file[]" required>
-  One or more files to upload (repeat the `files` field for each file).
-</ParamField>
-
-<ParamField body="names" type="string[]">
-  Display names for each file in the same order as `files`. If omitted, filenames are used.
-</ParamField>
-
-<ParamField body="group_id" type="string">
-  Assign all uploaded documents to this group.
-</ParamField>
-
-### Response
-
-<ResponseField name="results" type="array">
-  One entry per file, in the same order as `files`.
-
-  <Expandable title="Result object">
-    <ResponseField name="document_id" type="string">
-      Document identifier
-    </ResponseField>
-    <ResponseField name="task_id" type="string">
-      Ingestion task identifier — poll this to track status
-    </ResponseField>
-    <ResponseField name="status" type="string">
-      Always `pending` on upload
-    </ResponseField>
-    <ResponseField name="error" type="string | null">
-      Present only if this file failed to queue
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-### Example
-
-<CodeGroup>
-```bash cURL
-curl -X POST https://app.polyvia.ai/api/v1/ingest/batch \
-  -H "Authorization: Bearer poly_<your-key>" \
-  -F "files=@q3.pdf" \
-  -F "files=@q4.pdf" \
-  -F "names=Q3 Report" \
-  -F "names=Q4 Report" \
-  -F "group_id=g_..."
-```
-
-```python Python SDK
-from polyvia import Polyvia
-
-client = Polyvia(api_key="poly_...")
-
-batch = client.ingest.batch(
-    ["q3.pdf", "q4.pdf"],
-    names=["Q3 Report", "Q4 Report"],
-    group_id="g_...",
-)
-for item in batch:
-    client.ingest.wait(item.task_id)
-```
-</CodeGroup>
-
-<ResponseExample>
-```json Success
-{
-  "results": [
-    { "document_id": "k57abc...", "task_id": "3f2e...", "status": "pending", "error": null },
-    { "document_id": "k57def...", "task_id": "4a1b...", "status": "pending", "error": null }
-  ]
-}
-```
-</ResponseExample>
-
----
-
-## Direct Upload for Large Files
-
-The multipart endpoints above proxy the file bytes through the API server,
-which is subject to a **4.5 MB total request-body limit**. To upload larger
-files — or batches that exceed that limit — use the three-step direct-upload
-flow. Each file's bytes go straight from your client to Polyvia's storage
-backend, bypassing the API server entirely.
+The Ingest endpoints handle document uploads and status polling. Parsing
+runs asynchronously — upload returns a `task_id` immediately, which you
+then poll until ingestion completes.
 
 <Tip>
-  The official Python and JavaScript SDKs use this flow automatically, so
-  `client.ingest.file(...)` and `client.ingest.batch(...)` work for any
-  file size without any extra code. The steps below are only needed if
-  you're calling the REST API directly (e.g. from curl or a language we
-  don't ship an SDK for).
+  **Use an official SDK if you can** — the [Python](/products/python-sdk)
+  and [JavaScript](/products/js-sdk) SDKs wrap the direct-upload flow into
+  a single `client.ingest.file(...)` / `client.ingest.batch(...)` call
+  that works for any file size. The endpoint-level details below are only
+  needed if you're calling the REST API directly.
 </Tip>
+
+## Upload a Document
+
+The default upload flow streams your file bytes straight from your client
+to Polyvia's storage backend, then asks our API to register and parse it.
+This is a **three-step** flow that works for any file size — there is no
+practical upper limit.
 
 ### Step 1 — Get an upload URL
 
@@ -233,7 +78,19 @@ Storage responds with the new object's identifier:
   Assign the document to a group on creation.
 </ParamField>
 
-Returns the same `{document_id, task_id, status}` shape as `POST /api/v1/ingest`.
+### Response
+
+<ResponseField name="document_id" type="string" required>
+  Unique identifier for the uploaded document
+</ResponseField>
+
+<ResponseField name="task_id" type="string" required>
+  Ingestion task identifier — use this to poll for status
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Initial status: always `pending`
+</ResponseField>
 
 ### Example
 
@@ -243,16 +100,16 @@ Returns the same `{document_id, task_id, status}` shape as `POST /api/v1/ingest`
 UPLOAD_URL=$(curl -s -X POST https://app.polyvia.ai/api/v1/ingest/upload-url \
   -H "Authorization: Bearer poly_<your-key>" | jq -r '.upload_url')
 
-# 2. PUT the file bytes directly to storage
+# 2. PUT the file bytes directly to storage (no auth header!)
 STORAGE_ID=$(curl -s -X PUT "$UPLOAD_URL" \
   -H "Content-Type: application/pdf" \
-  --data-binary @big-report.pdf | jq -r '.storageId')
+  --data-binary @report.pdf | jq -r '.storageId')
 
 # 3. Finalize — register the document and queue parsing
 curl -X POST https://app.polyvia.ai/api/v1/ingest/finalize \
   -H "Authorization: Bearer poly_<your-key>" \
   -H "Content-Type: application/json" \
-  -d "{\"storage_id\": \"$STORAGE_ID\", \"file_type\": \"application/pdf\", \"name\": \"Big Report\", \"group_id\": \"g_...\"}"
+  -d "{\"storage_id\": \"$STORAGE_ID\", \"file_type\": \"application/pdf\", \"name\": \"Q4 Report\", \"group_id\": \"g_...\"}"
 ```
 
 ```python httpx
@@ -268,7 +125,7 @@ upload_url = httpx.post(
 ).json()["upload_url"]
 
 # 2. PUT the file directly to storage (no auth header here!)
-with open("big-report.pdf", "rb") as f:
+with open("report.pdf", "rb") as f:
     storage_id = httpx.put(
         upload_url,
         content=f.read(),
@@ -283,18 +140,137 @@ resp = httpx.post(
     json={
         "storage_id": storage_id,
         "file_type":  "application/pdf",
-        "name":       "Big Report",
+        "name":       "Q4 Report",
+        "group_id":   "g_...",
     },
 ).json()
-print(resp)  # {"document_id": "...", "task_id": "...", "status": "pending"}
+# {"document_id": "...", "task_id": "...", "status": "pending"}
+```
+
+```python Python SDK
+from polyvia import Polyvia
+
+client = Polyvia(api_key="poly_...")
+
+# The SDK runs the three-step direct-upload flow internally.
+result = client.ingest.file("report.pdf", name="Q4 Report", group_id="g_...")
+client.ingest.wait(result.task_id)
+```
+</CodeGroup>
+
+<ResponseExample>
+```json Finalize response
+{
+  "document_id": "k57abc123...",
+  "task_id":     "3f2e1d0c-...",
+  "status":      "pending"
+}
+```
+</ResponseExample>
+
+---
+
+## Upload Multiple Documents
+
+For batches, run the direct-upload flow once per file. The official SDKs
+do this in `client.ingest.batch(...)` — each file is uploaded and
+finalized independently, so a failure on one file is isolated to that
+entry instead of failing the whole batch.
+
+<CodeGroup>
+```python Python SDK
+from polyvia import Polyvia
+
+client = Polyvia(api_key="poly_...")
+
+batch = client.ingest.batch(
+    ["q3.pdf", "q4.pdf"],
+    names=["Q3 Report", "Q4 Report"],
+    group_id="g_...",
+)
+for item in batch.results:
+    if item.error:
+        print(f"failed: {item.file}: {item.error}")
+    else:
+        client.ingest.wait(item.task_id)
+```
+
+```ts JavaScript SDK
+import { Polyvia } from "polyvia";
+
+const client = new Polyvia({ apiKey: "poly_..." });
+
+const items = await client.ingest.batch(["q3.pdf", "q4.pdf"], {
+  names: ["Q3 Report", "Q4 Report"],
+  groupId: "g_...",
+});
+for (const item of items) {
+  if (item.error) {
+    console.error(`failed: ${item.error}`);
+  } else if (item.task_id) {
+    await client.ingest.wait(item.task_id);
+  }
+}
 ```
 </CodeGroup>
 
 ---
 
+## Quick Multipart Upload (small files)
+
+<Note>
+  These multipart endpoints proxy file bytes through the API server,
+  which has a **4.5 MB total request-body limit**. They exist as a
+  one-call convenience for small uploads. For any file size, prefer the
+  direct-upload flow above (or use an SDK, which does it for you).
+</Note>
+
+### `POST /api/v1/ingest`
+
+`multipart/form-data`
+
+<ParamField body="file" type="file" required>
+  The document to upload. See [Supported File Formats](#supported-file-formats) below.
+</ParamField>
+
+<ParamField body="name" type="string">
+  Display name in your workspace. Defaults to the filename.
+</ParamField>
+
+<ParamField body="group_id" type="string">
+  Assign the document to a group on upload.
+</ParamField>
+
+Returns the same `{document_id, task_id, status}` shape as `/finalize`.
+
+```bash
+curl -X POST https://app.polyvia.ai/api/v1/ingest \
+  -H "Authorization: Bearer poly_<your-key>" \
+  -F "file=@/path/to/report.pdf" \
+  -F "name=Q4 2024 Report" \
+  -F "group_id=g_..."
+```
+
+### `POST /api/v1/ingest/batch`
+
+`multipart/form-data`. Same fields as `/ingest` but `files` is repeated
+per file and `names` is a comma-separated string aligned to `files`.
+Returns `{results: [...], errors: [...] | null}`.
+
+```bash
+curl -X POST https://app.polyvia.ai/api/v1/ingest/batch \
+  -H "Authorization: Bearer poly_<your-key>" \
+  -F "files=@q3.pdf" \
+  -F "files=@q4.pdf" \
+  -F "names=Q3 Report,Q4 Report" \
+  -F "group_id=g_..."
+```
+
+---
+
 ## Check Ingestion Status
 
-Poll a parse task started by either upload endpoint.
+Poll a parse task started by either upload flow.
 
 ### Endpoint
 
@@ -303,7 +279,7 @@ Poll a parse task started by either upload endpoint.
 ### Path Parameters
 
 <ParamField path="task_id" type="string" required>
-  The task identifier returned by `POST /api/v1/ingest` or `POST /api/v1/ingest/batch`
+  The task identifier returned by `/ingest/finalize` (or the legacy multipart endpoints)
 </ParamField>
 
 ### Response

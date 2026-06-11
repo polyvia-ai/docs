@@ -19,11 +19,26 @@ Polyvia implements the [Model Context Protocol (MCP)](https://modelcontextprotoc
 
 Model Context Protocol is an open standard that allows AI applications to securely access external data sources and tools. Polyvia's MCP server exposes your document workspace as a set of tools that AI assistants can use to ingest, browse, and query your documents — all without leaving the conversation.
 
-## Connecting from Claude Desktop
+Polyvia's MCP server is hosted at `https://app.polyvia.ai/mcp` and uses the streamable HTTP transport. No installation required — just point your client at the URL and pass your API key as a bearer token.
 
-Polyvia's MCP server is hosted at `https://app.polyvia.ai/mcp` and uses the streamable HTTP transport. No installation required.
+## Connecting from Claude Code
 
-Open (or create) `~/.claude/claude_desktop_config.json` and add the `polyvia` entry:
+Add the server with a single command:
+
+```bash
+claude mcp add --transport http polyvia https://app.polyvia.ai/mcp \
+  --header "Authorization: Bearer poly_<your-key>"
+```
+
+This registers `polyvia` for the current project. Add `--scope user` to make it available in every project, or `--scope project` to share it with your team via a checked-in `.mcp.json`. Run `claude mcp list` to confirm it's connected, then ask Claude about your documents.
+
+<Tip>
+Generate a dedicated API key for each MCP client so you can revoke it independently.
+</Tip>
+
+## Connecting from Claude Desktop & other clients
+
+Claude Desktop and most other MCP clients read a JSON config file rather than a CLI. Open (or create) `~/.claude/claude_desktop_config.json` and add the `polyvia` entry:
 
 ```json
 {
@@ -41,16 +56,13 @@ Open (or create) `~/.claude/claude_desktop_config.json` and add the `polyvia` en
 
 Restart Claude Desktop. You should see **Polyvia** appear in the MCP server list.
 
-<Tip>
-Generate a dedicated API key for your Claude Desktop client so you can revoke it independently.
-</Tip>
-
 ## Connecting via SDK
 
 Both the Python and TypeScript SDKs expose a `client.mcp` helper that generates the correct config for each major AI client.
 
 | Python method | TypeScript method | Use with |
 |---|---|---|
+| `claude_code_command()` | `claudeCodeCommand()` | The `claude mcp add …` command line |
 | `to_anthropic_mcp_server()` | `toAnthropicMcpServer()` | Anthropic beta messages API |
 | `to_openai_responses_tool()` | `toOpenAIResponsesTool()` | OpenAI Responses API |
 | `to_openai_mcp_server()` | `toOpenAIMcpServer()` | OpenAI Agents SDK |

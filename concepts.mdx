@@ -1,0 +1,65 @@
+---
+title: "Core concepts"
+description: "Documents, groups, ingestion, querying and citations"
+---
+
+A quick mental model of how Polyvia works. Everything in the API and SDKs maps
+to these five ideas.
+
+## Documents
+
+A **document** is anything you ingest — a PDF, slide deck, spreadsheet, scan,
+image or audio file. Polyvia extracts the real data points (not 300-token
+captions) from each page and indexes them into the knowledge graph. Each
+document has an opaque `document_id`.
+
+<Card title="Supported formats" icon="file" href="/products/supported-formats" horizontal>
+  PDFs, Office & Google docs (DOCX / PPTX / XLSX), Markdown, text, images, audio.
+</Card>
+
+## Groups
+
+A **group** is a named collection of documents — a project, a deal, a quarter.
+Groups have a human **name** and an opaque backend **id**; you usually just pass
+the name and the SDK resolves it. Scope a query to a group to ask a question
+across exactly that set of documents.
+
+```python
+client.ingest.file("q4.pdf", group="FY24 Earnings")
+client.query("Revenue trend?", group="FY24 Earnings")
+```
+
+## Ingestion is asynchronous
+
+Uploading a document kicks off a background **task**. The upload call returns
+immediately with a `task_id` and a `document_id`; the document moves through
+`pending → processing → completed` (or `failed`). Poll
+`ingest.status(task_id)` or block with `ingest.wait(task_id)` before querying.
+
+<Info>
+  SDKs stream file bytes straight to storage — there's no practical file-size
+  cap and a failure on one file in a batch never affects the others.
+</Info>
+
+## Querying
+
+A **query** is a natural-language question. Scope it three ways:
+
+| Scope | How | When |
+| --- | --- | --- |
+| One document | `document_id=...` | Fastest; precise context |
+| A group | `group="..."` / `group_ids=[...]` | Ask across a project |
+| Whole workspace | *(no scope)* | Search everything indexed |
+
+Every answer is **grounded**: it comes back with citations pointing to the exact
+document, page and visual region the facts were drawn from.
+
+## Workspaces & keys
+
+Each API key is bound to **one workspace** (your personal space or a specific
+org) at creation time, and only ever reads and writes that workspace's data. To
+work across workspaces, mint a separate key per workspace.
+
+<Card title="Authentication & scoping" icon="key" href="/api-reference/introduction" horizontal>
+  How keys, the <code>Bearer</code> header and workspace binding work.
+</Card>

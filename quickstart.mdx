@@ -1,69 +1,138 @@
 ---
 title: "Quickstart"
-description: "Start leveraging Polyvia for your data in minutes"
+description: "Ingest your first document and query it in a couple of minutes"
 ---
 
-## Get started in three steps
+Polyvia turns visual & multimodal documents into a queryable knowledge graph.
+This guide takes you from zero to a cited answer.
 
-Follow these steps to integrate Polyvia into your workflow and start extracting insights from your visual documents.
+## 1. Get an API key
 
-### Step 1: Access Polyvia
-
-<AccordionGroup>
-  <Accordion icon="right-to-bracket" title="Log in to Polyvia Studio">
-    Navigate to [Polyvia Studio](https://app.polyvia.ai) and sign up or log in to your account.
-  </Accordion>
-  <Accordion icon="key" title="Obtain your API Key">
-    Go to the **Settings** section in Polyvia Studio to generate your API key. This key will be used for all API requests and MCP integrations.
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Ingest Your Documents
-
-<AccordionGroup>
-  <Accordion icon="file-import" title="Upload via Polyvia Studio">
-    Drag and drop your PDFs, slides, or other visual documents into the upload zone. Polyvia will extract visual logic and index facts automatically.
-  </Accordion>
-  <Accordion icon="code" title="Upload via API">
-    Use our `/ingest` endpoint to programmatically upload documents. Check the [API Reference](/api-reference/introduction) for details.
-  </Accordion>
-</AccordionGroup>
+<Steps>
+  <Step title="Sign in to Polyvia Platform">
+    Go to [app.polyvia.ai](https://app.polyvia.ai) and sign up or log in.
+  </Step>
+  <Step title="Create a key">
+    Open **Settings → API → Create API Key**. Copy it — it's shown only once. All
+    keys start with `poly_`.
+  </Step>
+</Steps>
 
 <Tip>
-  Polyvia ingests PDFs, Word docs, slides, Markdown, plain text, images, and audio recordings. See [Supported Formats](/products/supported-formats) for the full list.
+  In the snippets below you can paste your key straight into `api_key` to get
+  going. For real projects, keep it out of code instead — run
+  `export POLYVIA_API_KEY=poly_<key>` and call `Polyvia()` (or `new Polyvia()`)
+  with no arguments; the SDK reads the variable automatically. An explicit
+  `api_key` always takes precedence over the environment variable.
 </Tip>
 
-### Step 3: Query Your Visual Knowledge Base
+## 2. Install an SDK
 
-<AccordionGroup>
-  <Accordion icon="browser" title="Search via Polyvia Studio">
-    Open a chat session in Polyvia Studio and ask questions. Get answers with audit-ready citations pointing to exact documents, pages, and visual sources.
-  </Accordion>
-  <Accordion icon="code" title="Search via API">
-    Use the `/query` endpoint to programmatically search your knowledge base. See the [API Reference](/api-reference/endpoint/query) for details.
-  </Accordion>
-</AccordionGroup>
+<CodeGroup>
+```bash pip
+pip install polyvia
+```
+
+```bash npm
+npm install polyvia
+```
+</CodeGroup>
+
+<Tip>
+  Prefer raw HTTP? Every example here maps 1:1 to the REST
+  [API Reference](/api-reference/introduction). No SDK required.
+</Tip>
+
+## 3a. Ingest & query — a single file
+
+Ingestion is asynchronous: upload returns a `task_id`, then you poll (or
+`wait`) until it's `completed`. Once indexed, query in natural language and get
+an answer grounded in the exact source page.
+
+<CodeGroup>
+```python Python
+from polyvia import Polyvia
+
+client = Polyvia(api_key="poly_<key>")
+
+result = client.ingest.file("q4-report.pdf")
+client.ingest.wait(result.task_id)        # blocks until completed
+
+answer = client.query("What was Q4 revenue, and which chart shows it?")
+print(answer.answer)
+```
+
+```ts TypeScript
+import { Polyvia } from "polyvia";
+
+const client = new Polyvia({ apiKey: "poly_<key>" });
+
+const result = await client.ingest.file("q4-report.pdf");
+await client.ingest.wait(result.task_id); // resolves when completed
+
+const answer = await client.query("What was Q4 revenue, and which chart shows it?");
+console.log(answer.answer);
+```
+</CodeGroup>
+
+## 3b. Ingest & query — across many documents
+
+The power of Polyvia is querying a **whole corpus** jointly. Ingest a batch into
+a **group**, then ask one question across all of it.
+
+<CodeGroup>
+```python Python
+from polyvia import Polyvia
+
+client = Polyvia(api_key="poly_<key>")
+
+# Ingest several files into a group (created on first use)
+items = client.ingest.batch(
+    ["q1.pdf", "q2.pdf", "q3.pdf", "q4.pdf"],
+    group="FY24 Earnings",
+)
+for item in items:
+    client.ingest.wait(item.task_id)
+
+# Ask once, across the group — answers cite the exact page in each doc
+print(client.query("How did revenue trend across the four quarters?",
+                   group="FY24 Earnings").answer)
+```
+
+```ts TypeScript
+import { Polyvia } from "polyvia";
+
+const client = new Polyvia({ apiKey: "poly_<key>" });
+
+const items = await client.ingest.batch(
+  ["q1.pdf", "q2.pdf", "q3.pdf", "q4.pdf"],
+  { group: "FY24 Earnings" },
+);
+await Promise.all(items.map((i) => client.ingest.wait(i.task_id)));
+
+const answer = await client.query(
+  "How did revenue trend across the four quarters?",
+  { group: "FY24 Earnings" },
+);
+console.log(answer.answer);
+```
+</CodeGroup>
 
 ## Next steps
 
-Explore more ways to use Polyvia:
-
 <CardGroup cols={3}>
-
-<Card title="Polyvia API" icon="terminal" href="/api-reference/introduction">
-  Build custom integrations with our REST API.
-</Card>
-
-<Card title="Polyvia MCP Server" icon="plug" href="/products/mcp">
-  Connect Polyvia to Claude Desktop and Cursor.
-</Card>
-
-<Card title="Blog" icon="newspaper" href="https://polyvia.ai/blog">
-  Stay updated with the latest news and features.
-</Card>
-
+  <Card title="Core concepts" icon="book-open" href="/concepts">
+    Documents, groups, ingestion, citations.
+  </Card>
+  <Card title="Python SDK" icon="python" href="/products/python-sdk">
+    Async client, error handling, agent tools.
+  </Card>
+  <Card title="MCP Server" icon="plug" href="/products/mcp">
+    Use Polyvia from Claude, Cursor and agents.
+  </Card>
 </CardGroup>
 
 <Note>
-  **Need help?** Contact us at [senyao@polyvia.ai](mailto:senyao@polyvia.ai) or visit [Polyvia Studio](https://app.polyvia.ai) for support.
+  **Need help?** Email [senyao@polyvia.ai](mailto:senyao@polyvia.ai) or open
+  [Polyvia Platform](https://app.polyvia.ai).
 </Note>

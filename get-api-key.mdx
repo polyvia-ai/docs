@@ -1,0 +1,87 @@
+---
+title: "How to get API key"
+description: "Create, use, and manage your Polyvia API key"
+icon: "key"
+---
+
+Every request to the Polyvia API is authenticated with an API key. Here's how to
+create one, use it, and keep it scoped correctly.
+
+## Create a key
+
+<Steps>
+  <Step title="Sign in to Polyvia Platform">
+    Go to [app.polyvia.ai](https://app.polyvia.ai) and sign up or log in.
+  </Step>
+  <Step title="Open Settings → API">
+    Click **Settings → API → Create API Key**, give it a name, and optionally set
+    an expiry date.
+  </Step>
+  <Step title="Copy it once">
+    The key is shown **only once** — copy it now and store it somewhere safe. All
+    keys start with `poly_`.
+  </Step>
+</Steps>
+
+<Warning>
+  Keep your API key secret. Never commit it to a repo or expose it in client-side
+  code. If a key leaks, revoke it in **Settings → API** and mint a new one.
+</Warning>
+
+## Use the key
+
+Pass the key when you create a client:
+
+<CodeGroup>
+```python Python
+from polyvia import Polyvia
+
+client = Polyvia(api_key="poly_<key>")
+```
+
+```ts TypeScript
+import { Polyvia } from "polyvia";
+
+const client = new Polyvia({ apiKey: "poly_<key>" });
+```
+
+```bash cURL
+curl https://app.polyvia.ai/api/v1/usage \
+  -H "Authorization: Bearer poly_<key>"
+```
+</CodeGroup>
+
+<Tip>
+  Prefer not to hard-code it? Both SDKs also read the key from the
+  `POLYVIA_API_KEY` environment variable — `export POLYVIA_API_KEY=poly_<key>` and
+  you can drop the `api_key` / `apiKey` argument.
+</Tip>
+
+## Workspace scoping
+
+Each key is bound to **one workspace** at the moment you create it — your personal
+workspace or a specific organization — and only ever reads and writes that
+workspace's data.
+
+- Mint a key in your **personal workspace** → it sees your personal documents,
+  groups, and chats only.
+- Mint a key in an **organization** → it sees that org's shared documents and
+  groups; any teammate's key minted in the same org reads the same data.
+
+To work across workspaces, switch workspace in **Settings → API** and create a
+separate key for each.
+
+<Note>
+  Switching your *active* workspace in the UI later does not change what an
+  existing key can access — the binding is permanent. Revoke and re-mint to
+  change scope.
+</Note>
+
+## Manage & revoke
+
+Return to **Settings → API** any time to see your keys, their names and expiry,
+and to delete (revoke) a key. Revocation takes effect immediately.
+
+<Card title="Start building" icon="rocket" href="/quickstart" horizontal>
+  Have your key? Ingest your first batch and query it in a couple of minutes.
+</Card>

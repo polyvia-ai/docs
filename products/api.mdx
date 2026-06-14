@@ -1,10 +1,10 @@
 ---
 title: "Polyvia API"
-description: "REST API for document ingestion and querying"
+description: "Multimodal Document Retrieval API — for developers of AI agents"
 icon: "terminal"
 ---
 
-The Polyvia API provides programmatic access to document ingestion, group management, natural-language querying, and workspace analytics. Build applications that upload documents, organise them into groups, and ask questions across your workspace.
+**Polyvia API** is the **Multimodal Document Retrieval API — for developers of AI agents.** It gives you programmatic access to document ingestion, group management, natural-language querying, and workspace analytics — multimodal retrieval as a tool, so your agents can reason over 100K+ visual & multimodal docs where file-by-file agentic search stalls. Build applications that upload documents, organise them into groups, and ask questions across your workspace, with every answer grounded in a cited source page.
 
 ## Overview
 
@@ -31,7 +31,51 @@ The Polyvia API provides programmatic access to document ingestion, group manage
 
 ## Quick Example
 
-Here's a complete workflow: ingest two documents into a group, wait for processing, then query across them.
+Here's a complete workflow: ingest a batch into a group, wait for processing, then query across all of it. The quickest path is an official SDK.
+
+<CodeGroup>
+```python Python
+from polyvia import Polyvia
+
+client = Polyvia(api_key="poly_<key>")
+
+# Ingest a batch into a group, then ask one question across all of it.
+items = client.ingest.batch(
+    ["q1.pdf", "q2.pdf", "q3.pdf", "q4.pdf"],
+    group="FY24 Earnings",
+)
+for item in items:
+    client.ingest.wait(item.task_id)
+
+# Answers cite the exact page in each document.
+print(client.query("How did revenue trend across the four quarters?",
+                   group="FY24 Earnings").answer)
+```
+
+```ts TypeScript
+import { Polyvia } from "polyvia";
+
+const client = new Polyvia({ apiKey: "poly_<key>" });
+
+// Ingest a batch into a group, then ask one question across all of it.
+const items = await client.ingest.batch(
+  ["q1.pdf", "q2.pdf", "q3.pdf", "q4.pdf"],
+  { group: "FY24 Earnings" },
+);
+await Promise.all(items.map((i) => client.ingest.wait(i.task_id)));
+
+// Answers cite the exact page in each document.
+const answer = await client.query(
+  "How did revenue trend across the four quarters?",
+  { group: "FY24 Earnings" },
+);
+console.log(answer.answer);
+```
+</CodeGroup>
+
+## Or use the REST API directly
+
+The same workflow over raw HTTP — no SDK required.
 
 ### 1. Create a Group
 
@@ -57,12 +101,12 @@ import time
 with open("q3.pdf", "rb") as f:
     r1 = httpx.post(f"{BASE}/api/v1/ingest", headers=HEADERS,
                     files={"file": ("q3.pdf", f)},
-                    data={"name": "Q3 Report", "group_id": group_id}).json()
+                    data={"group_id": group_id}).json()
 
 with open("q4.pdf", "rb") as f:
     r2 = httpx.post(f"{BASE}/api/v1/ingest", headers=HEADERS,
                     files={"file": ("q4.pdf", f)},
-                    data={"name": "Q4 Report", "group_id": group_id}).json()
+                    data={"group_id": group_id}).json()
 
 # Wait for both
 for task_id in [r1["task_id"], r2["task_id"]]:
@@ -85,45 +129,6 @@ answer = httpx.post(
 print(answer)
 ```
 
-### Or use an SDK
-
-The same workflow in a few lines with either official SDK:
-
-<CodeGroup>
-```python Python
-from polyvia import Polyvia
-
-client = Polyvia(api_key="poly_<key>")
-
-group_id = client.groups.create("Finance")["group_id"]
-
-batch = client.ingest.batch(["q3.pdf", "q4.pdf"],
-                             names=["Q3 Report", "Q4 Report"],
-                             group_id=group_id)
-for item in batch:
-    client.ingest.wait(item.task_id)
-
-print(client.query("Compare the key findings.", group_id=group_id).answer)
-```
-
-```ts TypeScript
-import { Polyvia } from "polyvia";
-
-const client = new Polyvia({ apiKey: "poly_<key>" });
-
-const { group_id } = await client.groups.create("Finance");
-
-const items = await client.ingest.batch(["q3.pdf", "q4.pdf"], {
-  names: ["Q3 Report", "Q4 Report"],
-  groupId: group_id,
-});
-await Promise.all(items.map(item => client.ingest.wait(item.task_id!)));
-
-const answer = await client.query("Compare the key findings.", { groupId: group_id });
-console.log(answer.answer);
-```
-</CodeGroup>
-
 ## Next Steps
 
 <CardGroup cols={2}>
@@ -139,7 +144,7 @@ console.log(answer.answer);
   <Card title="Polyvia MCP Server" icon="plug" href="/products/mcp">
     Connect Polyvia to Claude Desktop and other AI tools
   </Card>
-  <Card title="Polyvia Studio" icon="browser" href="https://app.polyvia.ai">
+  <Card title="Polyvia Platform" icon="browser" href="https://app.polyvia.ai">
     Upload and manage documents in the web UI
   </Card>
 </CardGroup>

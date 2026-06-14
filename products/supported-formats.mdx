@@ -6,6 +6,31 @@ icon: "file-lines"
 
 Polyvia ingests text, visual, and audio source material into the same unified knowledge graph. You don't need to pre-classify or pre-convert your files — drop in whatever your team produces and Polyvia routes each file through the right parser automatically.
 
+## Modalities
+
+Live today — **Visual Document Intelligence + Audio**, ingesting now:
+
+- Charts
+- Graphs & plots
+- Infographics
+- Complex, multi-page tables
+- Slides & decks
+- Reports & filings
+- Scanned & photographed pages
+- Invoices & forms
+- Handwriting & annotations
+- Diagrams & flowcharts
+- Photos & images
+- Audio (calls, meetings, recordings)
+
+**Coming next:**
+
+- Healthcare scans / EHR
+- Chemical & molecular data
+- CAD & technical drawings
+- Video
+- Geospatial
+
 ## Overview
 
 <CardGroup cols={4}>
@@ -27,7 +52,18 @@ Polyvia ingests text, visual, and audio source material into the same unified kn
 
 <AccordionGroup>
   <Accordion title="PDF" icon="file-pdf">
-    Reports, filings, contracts, research papers, scanned books. Polyvia extracts text, tables, charts, and figures — preserving page numbers and layout for citations.
+    Reports, filings, contracts, research papers, scanned books, invoices. Polyvia reads everything on the page — not just the text layer:
+
+    - **Text** — body text, headings, footnotes, and multi-column layouts
+    - **Tables** — including complex, multi-page, and nested tables
+    - **Charts & graphs** — bar, line, pie, scatter, and combo charts read back as data
+    - **Infographics & diagrams** — flowcharts, org charts, schematics, maps
+    - **Figures & images** — embedded photos, logos, and screenshots
+    - **Scanned & photographed pages** — OCR over image-only PDFs
+    - **Handwriting** — handwritten notes and annotations
+    - **Forms & invoices** — fields, line items, stamps, and signatures
+
+    Page numbers and layout are preserved for citations.
 
     **Extensions:** `.pdf`
   </Accordion>
@@ -95,7 +131,7 @@ Regardless of format, every file flows through the same pipeline:
 You can ingest any supported format through any of our interfaces:
 
 <CardGroup cols={3}>
-  <Card title="Polyvia Studio" icon="browser" href="/products/studio">
+  <Card title="Polyvia Platform" icon="browser" href="/products/platform">
     Drag-and-drop upload — no code required.
   </Card>
   <Card title="REST API" icon="terminal" href="/api-reference/endpoint/ingest">

@@ -25,25 +25,28 @@ from polyvia import Polyvia
 
 client = Polyvia(api_key="poly_<key>")
 
-# Ingest → wait → query
-result = client.ingest.file("report.pdf", name="Q4 Report")
-client.ingest.wait(result.task_id)
-print(client.query("What are the key findings?").answer)
+# Ingest a batch into a group, then ask one question across all of it.
+items = client.ingest.batch(
+    ["q1.pdf", "q2.pdf", "q3.pdf", "q4.pdf"],
+    group="FY24 Earnings",
+)
+for item in items:
+    client.ingest.wait(item.task_id)
+
+# Answers cite the exact page in each document.
+print(client.query("How did revenue trend across the four quarters?",
+                   group="FY24 Earnings").answer)
 ```
 
-Or set `POLYVIA_API_KEY` in your environment and omit the argument:
-
-```bash
-export POLYVIA_API_KEY=poly_<key>
-```
-
-```python
-client = Polyvia()
-```
+<Tip>
+  Prefer not to hard-code the key? The SDK also reads it from the
+  `POLYVIA_API_KEY` environment variable — set `export POLYVIA_API_KEY=poly_<key>`
+  and you can drop the `api_key` argument.
+</Tip>
 
 ---
 
-## REST API
+## Usage
 
 ### Ingest
 
@@ -57,7 +60,7 @@ the others.
 ```python
 # Single file — accepts a file path, bytes, or file-like object.
 # `group` takes the group name; it's created if it doesn't exist yet.
-result = client.ingest.file("report.pdf", name="Q4 Report", group="Finance")
+result = client.ingest.file("report.pdf", group="Finance")
 # → IngestResult(document_id="<id>", task_id="<id>", status="pending")
 
 # Multiple files (the group is resolved once for the batch)

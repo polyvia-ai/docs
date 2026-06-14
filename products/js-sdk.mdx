@@ -22,25 +22,21 @@ import { Polyvia } from "polyvia";
 const client = new Polyvia({ apiKey: "poly_<key>" });
 
 // Ingest → wait → query
-const result = await client.ingest.file("report.pdf", { name: "Q4 Report" });
+const result = await client.ingest.file("report.pdf");
 await client.ingest.wait(result.task_id);
 const answer = await client.query("What are the key findings?");
 console.log(answer.answer);
 ```
 
-Or set `POLYVIA_API_KEY` in your environment and omit the argument:
-
-```bash
-export POLYVIA_API_KEY=poly_<key>
-```
-
-```ts
-const client = new Polyvia();
-```
+<Tip>
+  Prefer not to hard-code the key? The SDK also reads it from the
+  `POLYVIA_API_KEY` environment variable — set `export POLYVIA_API_KEY=poly_<key>`
+  and you can drop the `apiKey` option.
+</Tip>
 
 ---
 
-## REST API
+## Usage
 
 ### Ingest
 

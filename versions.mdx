@@ -1,0 +1,80 @@
+---
+title: "Releases & changelog"
+description: "What's new in Polyvia — release notes and versions"
+---
+
+Polyvia ships in stages, version by version:
+
+<CardGroup cols={3}>
+  <Card title="Polyvia-1.0 — API" icon="terminal">
+    The developer product — REST API, Python & TypeScript SDKs, MCP server, and
+    agent skills. **Available now.**
+  </Card>
+  <Card title="Polyvia-1.1 — Platform" icon="browser">
+    The web app for knowledge workers in enterprises — ingest, chat, and explore
+    the knowledge graph. **Coming next.**
+  </Card>
+  <Card title="Polyvia Agents" icon="robot">
+    Build your own agent for automating processes on large volumes of multimodal
+    documents. **Soon after.**
+  </Card>
+</CardGroup>
+
+---
+
+<Update label="Polyvia-1.0 — API & SDKs" description="2026" tags={["API", "SDK", "MCP"]}>
+  ## The developer release
+
+  Everything you need to build multimodal document intelligence into your own
+  agents and apps.
+
+  - **REST API v1** — `ingest`, `documents`, `groups`, `query`, `usage`, and
+    `rate-limits`. Async ingestion with task polling; query workspace-wide, by
+    group, or per document, with grounded citations.
+  - **Python SDK** — `pip install polyvia`. Typed sync **and** async clients,
+    batch ingestion, idempotent groups, and structured error handling.
+  - **TypeScript SDK** — `npm install polyvia`. Fully-typed, ESM/CJS, for Node
+    and modern JS.
+  - **MCP server + agent tools** — connect Polyvia to Claude, Cursor and other
+    MCP clients; first-class helpers for agent frameworks and LangChain.
+
+  <Card title="Start in the quickstart" icon="rocket" href="/quickstart" horizontal>
+    Index your first document and query it in a couple of minutes.
+  </Card>
+</Update>
+
+<Update label="Polyvia-1.1 — Platform" description="2026" tags={["Platform"]}>
+  ## What's new in Polyvia Platform
+
+  A major upgrade to the web app at [app.polyvia.ai](https://app.polyvia.ai).
+
+  - **Better document processing** — large documents process reliably and much
+    faster, with live uploading & parsing progress on each card while ingestion
+    runs, and bigger uploads (up to 50 MB).
+  - **Better chat** — smooth streaming and reliable citation links.
+  - **Office & Google docs + images** — upload Word, PowerPoint and Excel
+    (DOCX / PPTX / XLSX) alongside PDFs and images.
+  - **Faster, smoother viewer** — PDFs open quickly and scroll without stutter.
+  - **Knowledge graph view** — see entities, claims and evidence extracted from
+    your docs. Filter by group, and click any claim to jump to its source page in
+    a side panel.
+  - **Settings + API access** — a Usage tab showing pages, queries and API calls
+    (this month and lifetime).
+  - **Integrations (WIP)** — connect Google Drive, Dropbox, OneDrive / SharePoint,
+    Amazon S3, Notion and Slack. Notion and Slack use per-user OAuth, so each
+    teammate signs in with their own account. All sources appear in a unified
+    **Import** dropdown on the Documents page.
+
+  <Card title="Open Polyvia Platform" icon="browser" href="https://app.polyvia.ai" horizontal>
+    Upload, chat, and explore the knowledge graph in the browser.
+  </Card>
+</Update>
+
+---
+
+<Note>
+  **Soon after — Polyvia Agents:** build your own agent for automating processes
+  on large volumes of multimodal documents. Plus more integrations out of WIP and
+  expanded ingest types (CAD, geospatial, molecular). Follow along on the
+  [blog](https://polyvia.ai/blog).
+</Note>

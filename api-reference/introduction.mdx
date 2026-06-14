@@ -1,9 +1,9 @@
 ---
-title: 'API Reference'
-description: 'Build document ingestion and querying into your applications'
+title: 'Overview'
+description: 'Authentication, base URL, and scoping for the Polyvia REST API'
 ---
 
-Welcome to the Polyvia API documentation. Our API enables you to upload documents, organise them into groups, ask natural-language questions across your workspace, and monitor usage.
+The Polyvia REST API lets you upload documents, organise them into groups, ask natural-language questions across your workspace, and monitor usage. This page covers authentication, the base URL, and workspace scoping; the pages that follow document each endpoint.
 
 <Tip>
 The [Python SDK](/products/python-sdk) (`pip install polyvia`) wraps every endpoint with a typed client and adds first-class support for the MCP server and agent frameworks.
@@ -17,18 +17,9 @@ All API requests require authentication using an API key. Include your key in th
 Authorization: Bearer poly_<your-key>
 ```
 
-<Warning>
-Keep your API key secure. Never expose it in client-side code or public repositories.
-</Warning>
-
-## Getting Your API Key
-
-1. Sign in to [Polyvia](https://app.polyvia.ai)
-2. Go to **Settings → API**
-3. Click **Create API Key**, give it a name, and optionally set an expiry date
-4. Copy the key — it is shown **only once**
-
-All keys start with `poly_`. To revoke a key, return to **Settings → API** and click the delete icon next to it.
+<Card title="How to get an API key" icon="key" href="/get-api-key" horizontal>
+  Create, use, and manage your key — and how workspace binding works.
+</Card>
 
 ## Workspace Scoping
 
@@ -118,4 +109,4 @@ curl -X POST https://app.polyvia.ai/api/v1/query \
 Need help? Reach out to our team:
 
 - **Email**: [senyao@polyvia.ai](mailto:senyao@polyvia.ai)
-- **Studio**: [app.polyvia.ai](https://app.polyvia.ai)
+- **Platform**: [app.polyvia.ai](https://app.polyvia.ai)

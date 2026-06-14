@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Polyvia AI",
+  "name": "Polyvia",
   "colors": {
     "primary": "#3b82f6",
     "light": "#60a5fa",
@@ -11,27 +11,31 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
+        "icon": "book-open",
         "groups": [
           {
-            "group": "Getting Started",
+            "group": "Get Started",
             "pages": [
               "index",
               "quickstart",
-              "products/supported-formats"
+              "concepts",
+              "products/supported-formats",
+              "products/integrations",
+              "get-api-key"
             ]
           },
           {
             "group": "Products",
             "pages": [
               "products/api",
+              "products/platform",
               "products/python-sdk",
               "products/js-sdk",
               "products/mcp",
               "products/skills",
-              "products/studio",
               {
-                "group": "Integrations",
+                "group": "List of Integrations",
                 "pages": [
                   "products/integrations",
                   "products/integrations/google-drive",
@@ -43,30 +47,31 @@
                 ]
               }
             ]
-          }
-        ]
-      },
-      {
-        "tab": "API Reference",
-        "groups": [
-          {
-            "group": "Overview",
-            "pages": [
-              "api-reference/introduction"
-            ]
           },
           {
-            "group": "Endpoints",
+            "group": "API Reference",
             "pages": [
+              "api-reference/introduction",
               "api-reference/endpoint/ingest",
               "api-reference/endpoint/documents",
               "api-reference/endpoint/groups",
               "api-reference/endpoint/query",
               "api-reference/endpoint/usage"
             ]
+          },
+          {
+            "group": "Releases",
+            "pages": [
+              "versions"
+            ]
           }
         ]
-      }
+      },
+      { "tab": "Quickstart", "icon": "rocket", "pages": ["quickstart"] },
+      { "tab": "Python SDK", "icon": "python", "pages": ["products/python-sdk"] },
+      { "tab": "TypeScript SDK", "icon": "js", "pages": ["products/js-sdk"] },
+      { "tab": "MCP", "icon": "plug", "pages": ["products/mcp"] },
+      { "tab": "Agent Skills", "icon": "robot", "pages": ["products/skills"] }
     ]
   },
   "logo": {
@@ -76,8 +81,17 @@
   "navbar": {
     "links": [
       {
+        "label": "Website",
+        "href": "https://polyvia.ai"
+      },
+      {
+        "label": "GitHub",
+        "href": "https://github.com/polyvia-ai",
+        "icon": "github"
+      },
+      {
         "label": "Support",
-        "href": "mailto:senyao@polyvia.ai"
+        "href": "/support"
       }
     ],
     "primary": {

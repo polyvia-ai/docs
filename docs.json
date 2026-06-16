@@ -81,12 +81,12 @@
   "navbar": {
     "links": [
       {
-        "label": "Website",
+        "label": "Homepage",
         "href": "https://polyvia.ai"
       },
       {
         "label": "GitHub",
-        "href": "https://github.com/polyvia-ai",
+        "href": "https://github.com/polyvia-ai/polyvia",
         "icon": "github"
       },
       {

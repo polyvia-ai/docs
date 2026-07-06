@@ -3,30 +3,30 @@ title: "Releases & changelog"
 description: "What's new in Polyvia — release notes and versions"
 ---
 
-Polyvia ships in stages, version by version:
+**Polyvia 1** ships as two products:
 
-<CardGroup cols={3}>
-  <Card title="Polyvia-1.1 — API" icon="terminal">
+<CardGroup cols={2}>
+  <Card title="Polyvia API" icon="terminal">
     The developer product — REST API, Python & TypeScript SDKs, MCP server, and
-    agent skills. **Available now.**
+    agent skills.
   </Card>
-  <Card title="Polyvia-1.2 — Platform" icon="browser">
-    The web app for knowledge workers in enterprises — ingest, chat, and explore
-    the knowledge graph. **Coming next.**
-  </Card>
-  <Card title="Polyvia Agents" icon="robot">
-    Build your own agent for automating processes on large volumes of multimodal
-    documents. **Soon after.**
+  <Card title="Polyvia Platform" icon="browser">
+    Search & Exploration over multimodal docs — ingest, chat, and explore the
+    knowledge graph.
   </Card>
 </CardGroup>
 
 ---
 
-<Update label="Polyvia-1.1 — API & SDKs" description="2026" tags={["API", "SDK", "MCP"]}>
-  ## The developer release
+<Update label="Polyvia 1 — API & Platform" description="2026" tags={["API", "SDK", "MCP", "Platform"]}>
+  ## Polyvia 1
 
-  Everything you need to build multimodal document retrieval into your own
-  agents and apps.
+  Polyvia 1 ships as two products: the **Polyvia API** (Multimodal Document
+  Retrieval API, for developers of AI agents) and the **Polyvia Platform**
+  (Search & Exploration over multimodal docs, for knowledge workers in
+  enterprises).
+
+  ### Polyvia API
 
   - **REST API v1** — `ingest`, `documents`, `groups`, `query`, `usage`, and
     `rate-limits`. Async ingestion with task polling; query workspace-wide, by
@@ -38,15 +38,7 @@ Polyvia ships in stages, version by version:
   - **MCP server + agent tools** — connect Polyvia to Claude, Cursor and other
     MCP clients; first-class helpers for agent frameworks and LangChain.
 
-  <Card title="Start in the quickstart" icon="rocket" href="/quickstart" horizontal>
-    Index your first document and query it in a couple of minutes.
-  </Card>
-</Update>
-
-<Update label="Polyvia-1.2 — Platform" description="2026" tags={["Platform"]}>
-  ## What's new in Polyvia Platform
-
-  A major upgrade to the web app at [app.polyvia.ai](https://app.polyvia.ai).
+  ### Polyvia Platform
 
   - **Better document processing** — large documents process reliably and much
     faster, with live uploading & parsing progress on each card while ingestion
@@ -65,16 +57,14 @@ Polyvia ships in stages, version by version:
     teammate signs in with their own account. All sources appear in a unified
     **Import** dropdown on the Documents page.
 
-  <Card title="Open Polyvia Platform" icon="browser" href="https://app.polyvia.ai" horizontal>
-    Upload, chat, and explore the knowledge graph in the browser.
+  <Card title="Start in the quickstart" icon="rocket" href="/quickstart" horizontal>
+    Index your first document and query it in a couple of minutes.
   </Card>
 </Update>
 
 ---
 
 <Note>
-  **Soon after — Polyvia Agents:** build your own agent for automating processes
-  on large volumes of multimodal documents. Plus more integrations out of WIP and
-  expanded ingest types (CAD, heatmaps, molecular). Follow along on the
-  [blog](https://polyvia.ai/blog).
+  **On the roadmap:** more integrations out of WIP and expanded ingest types
+  (CAD, heatmaps, molecular). Follow along on the [blog](https://polyvia.ai/blog).
 </Note>
